@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Functions &amp; Parameters — IGCSE 0478</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ─── TOP NAV ─── -->
+<header id="topbar">
+  <div class="topbar-left">
+    <span class="logo-badge">0478</span>
+    <h1>Functions &amp; Parameters</h1>
+  </div>
+  <nav class="topbar-nav">
+    <button class="nav-btn active" data-view="demo">
+      <span class="nav-icon">&#9881;</span> Interactive Demo
+    </button>
+    <button class="nav-btn" data-view="questions">
+      <span class="nav-icon">&#10067;</span> Discussion Questions
+    </button>
+    <button class="nav-btn" data-view="tasks">
+      <span class="nav-icon">&#9998;</span> Student Tasks
+    </button>
+  </nav>
+</header>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  VIEW 1 — INTERACTIVE DEMO                 -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="view-demo" class="view active">
+
+  <!-- Concept Selector -->
+  <div class="demo-topstrip">
+    <label for="scenarioSelect">Choose a scenario:</label>
+    <select id="scenarioSelect">
+      <option value="0">1 — Calling a simple procedure</option>
+      <option value="1">2 — Passing one argument</option>
+      <option value="2">3 — Passing two arguments</option>
+      <option value="3">4 — Function with RETURN value</option>
+      <option value="4">5 — ByVal vs ByRef concept</option>
+    </select>
+    <button id="resetDemoBtn" class="btn-sm">Reset</button>
+  </div>
+
+  <div class="demo-columns">
+
+    <!-- LEFT: Code panel -->
+    <div class="demo-code-panel">
+      <div class="panel-label">Pseudocode</div>
+      <pre id="codeDisplay" class="code-block"></pre>
+      <div id="codeExplanation" class="explanation-box"></div>
+    </div>
+
+    <!-- RIGHT: Drag-and-Drop arena -->
+    <div class="demo-drag-panel">
+      <div class="panel-label">Drag &amp; Drop — pass the data</div>
+
+      <!-- Argument tray -->
+      <div id="argTray" class="arg-tray">
+        <div class="tray-title">Arguments (values to pass)</div>
+        <div id="argItems" class="tray-items"></div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="pass-arrow" id="passArrow">
+        <svg width="60" height="30" viewBox="0 0 60 30"><path d="M0 15 H45 L38 5 M45 15 L38 25" stroke="#E87205" stroke-width="3" fill="none"/></svg>
+        <span class="arrow-label" id="arrowLabel">pass</span>
+      </div>
+
+      <!-- Parameter slots -->
+      <div id="paramSlots" class="param-slots">
+        <div class="tray-title">Parameters (slots in the function)</div>
+        <div id="paramItems" class="tray-items"></div>
+      </div>
+
+      <!-- Return zone (hidden until scenario 4+) -->
+      <div id="returnZone" class="return-zone hidden">
+        <div class="tray-title">Return Value</div>
+        <div id="returnSlot" class="return-slot">
+          <span class="placeholder">Drop result here</span>
+        </div>
+      </div>
+
+      <!-- Feedback -->
+      <div id="demoFeedback" class="demo-feedback"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  VIEW 2 — DISCUSSION QUESTIONS              -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="view-questions" class="view">
+
+  <div class="q-controls">
+    <button id="showQuestionBtn" class="btn-primary">Show Next Question</button>
+    <button id="revealAnswerBtn" class="btn-secondary" disabled>Reveal Guidance</button>
+    <span id="qCounter" class="q-counter"></span>
+  </div>
+
+  <div id="questionCard" class="question-card">
+    <p class="q-placeholder">Press <strong>"Show Next Question"</strong> to begin.</p>
+  </div>
+
+  <div id="answerCard" class="answer-card hidden"></div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  VIEW 3 — STUDENT TASKS                    -->
+<!-- ═══════════════════════════════════════════ -->
+<section id="view-tasks" class="view">
+
+  <div class="tasks-header">
+    <p class="tasks-intro">Tasks are ordered from <strong>easiest</strong> to <strong>most complex</strong>. Work through them at your own pace.</p>
+    <div class="task-nav-strip">
+      <button id="prevTaskBtn" class="btn-sm" disabled>&laquo; Previous</button>
+      <span id="taskCounter" class="q-counter">Task 1 / 24</span>
+      <button id="nextTaskBtn" class="btn-sm">Next &raquo;</button>
+    </div>
+  </div>
+
+  <div id="taskCard" class="task-card"></div>
+
+  <div class="task-progress-bar">
+    <div id="taskProgressFill" class="progress-fill"></div>
+  </div>
+  <div id="taskDots" class="task-dots"></div>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>
