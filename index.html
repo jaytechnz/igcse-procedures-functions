@@ -7,25 +7,31 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Anybody:wght@400;600;700;900&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 </head>
 <body>
 
 <!-- ─── TOP NAV ─── -->
 <header id="topbar">
-  <div class="topbar-left">
-    <span class="logo-badge">0478</span>
-    <h1>Functions &amp; Parameters</h1>
+  <div class="topbar-brand">
+    <span class="logo-chip">0478</span>
+    <div class="brand-text">
+      <span class="brand-title">Functions &amp; Parameters</span>
+      <span class="brand-sub">Cambridge IGCSE Computer Science</span>
+    </div>
   </div>
-  <nav class="topbar-nav">
-    <button class="nav-btn active" data-view="demo">
-      <span class="nav-icon">&#9881;</span> Interactive Demo
+  <nav class="topbar-tabs">
+    <button class="tab active" data-view="demo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Interactive Demo
     </button>
-    <button class="nav-btn" data-view="questions">
-      <span class="nav-icon">&#10067;</span> Discussion Questions
+    <button class="tab" data-view="questions">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Discussion Questions
     </button>
-    <button class="nav-btn" data-view="tasks">
-      <span class="nav-icon">&#9998;</span> Student Tasks
+    <button class="tab" data-view="tasks">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Student Tasks
     </button>
   </nav>
 </header>
@@ -35,60 +41,92 @@
 <!-- ═══════════════════════════════════════════ -->
 <section id="view-demo" class="view active">
 
-  <!-- Concept Selector -->
-  <div class="demo-topstrip">
-    <label for="scenarioSelect">Choose a scenario:</label>
-    <select id="scenarioSelect">
-      <option value="0">1 — Calling a simple procedure</option>
-      <option value="1">2 — Passing one argument</option>
-      <option value="2">3 — Passing two arguments</option>
-      <option value="3">4 — Function with RETURN value</option>
-      <option value="4">5 — ByVal vs ByRef concept</option>
-    </select>
-    <button id="resetDemoBtn" class="btn-sm">Reset</button>
+  <!-- Scenario selector bar -->
+  <div class="scenario-bar">
+    <button class="scenario-pill active" data-idx="0"><span class="pill-num">1</span> No Parameters</button>
+    <button class="scenario-pill" data-idx="1"><span class="pill-num">2</span> One Parameter</button>
+    <button class="scenario-pill" data-idx="2"><span class="pill-num">3</span> Two Parameters</button>
+    <button class="scenario-pill" data-idx="3"><span class="pill-num">4</span> Return Values</button>
+    <button class="scenario-pill" data-idx="4"><span class="pill-num">5</span> ByVal vs ByRef</button>
   </div>
 
-  <div class="demo-columns">
+  <div class="demo-layout">
 
-    <!-- LEFT: Code panel -->
-    <div class="demo-code-panel">
-      <div class="panel-label">Pseudocode</div>
-      <pre id="codeDisplay" class="code-block"></pre>
-      <div id="codeExplanation" class="explanation-box"></div>
+    <!-- LEFT COLUMN — Code comparison -->
+    <div class="code-col">
+      <div class="code-card">
+        <div class="code-card-head">
+          <div class="lang-dot pseudo-dot"></div>
+          CIE Pseudocode
+        </div>
+        <pre class="code-pre" id="codePseudo"></pre>
+      </div>
+      <div class="code-card java-card">
+        <div class="code-card-head">
+          <div class="lang-dot java-dot"></div>
+          Java
+        </div>
+        <pre class="code-pre" id="codeJava"></pre>
+      </div>
+      <div class="explain-card" id="explainCard"></div>
     </div>
 
-    <!-- RIGHT: Drag-and-Drop arena -->
-    <div class="demo-drag-panel">
-      <div class="panel-label">Drag &amp; Drop — pass the data</div>
+    <!-- RIGHT COLUMN — Visual "function machine" -->
+    <div class="machine-col">
+      <div class="machine-frame">
 
-      <!-- Argument tray -->
-      <div id="argTray" class="arg-tray">
-        <div class="tray-title">Arguments (values to pass)</div>
-        <div id="argItems" class="tray-items"></div>
-      </div>
-
-      <!-- Arrow -->
-      <div class="pass-arrow" id="passArrow">
-        <svg width="60" height="30" viewBox="0 0 60 30"><path d="M0 15 H45 L38 5 M45 15 L38 25" stroke="#E87205" stroke-width="3" fill="none"/></svg>
-        <span class="arrow-label" id="arrowLabel">pass</span>
-      </div>
-
-      <!-- Parameter slots -->
-      <div id="paramSlots" class="param-slots">
-        <div class="tray-title">Parameters (slots in the function)</div>
-        <div id="paramItems" class="tray-items"></div>
-      </div>
-
-      <!-- Return zone (hidden until scenario 4+) -->
-      <div id="returnZone" class="return-zone hidden">
-        <div class="tray-title">Return Value</div>
-        <div id="returnSlot" class="return-slot">
-          <span class="placeholder">Drop result here</span>
+        <!-- Instruction banner -->
+        <div class="instr-banner" id="instrBanner">
+          <div class="instr-step" id="instrStep">Getting started</div>
+          <div class="instr-text" id="instrText">Choose a scenario from the tabs above.</div>
         </div>
-      </div>
 
-      <!-- Feedback -->
-      <div id="demoFeedback" class="demo-feedback"></div>
+        <!-- CALLER area -->
+        <div class="area-label caller-label">CALLER &mdash; values you send</div>
+        <div class="caller-tray" id="callerTray"></div>
+
+        <!-- Arrow down -->
+        <div class="arrow-track">
+          <div class="arrow-shaft"></div>
+          <div class="arrow-head">&#9660;</div>
+          <div class="arrow-word" id="arrowWord">pass</div>
+        </div>
+
+        <!-- THE FUNCTION BOX -->
+        <div class="fn-machine" id="fnMachine">
+          <div class="fn-machine-title" id="fnMachineTitle">PROCEDURE SayHello()</div>
+          <div class="fn-machine-slots" id="fnMachineSlots">
+            <!-- param slots rendered by JS -->
+          </div>
+          <div class="fn-machine-body" id="fnMachineBody">OUTPUT "Hello!"</div>
+        </div>
+
+        <!-- Arrow up (return) -->
+        <div class="arrow-track arrow-return hidden" id="returnArrow">
+          <div class="arrow-word">returns</div>
+          <div class="arrow-head" style="transform:rotate(180deg)">&#9660;</div>
+          <div class="arrow-shaft"></div>
+        </div>
+
+        <!-- RETURN area -->
+        <div class="return-area hidden" id="returnArea">
+          <div class="area-label return-label">RETURN VALUE</div>
+          <div class="return-tray">
+            <div class="return-drop" id="returnDrop"><span class="drop-ph">drop result here</span></div>
+            <div class="return-options" id="returnOptions"></div>
+          </div>
+        </div>
+
+        <!-- Feedback toast -->
+        <div class="feedback-toast" id="feedbackToast"></div>
+
+        <!-- Reset -->
+        <button class="reset-btn" id="resetBtn" title="Reset this scenario">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          Reset
+        </button>
+
+      </div>
     </div>
   </div>
 </section>
@@ -97,40 +135,36 @@
 <!--  VIEW 2 — DISCUSSION QUESTIONS              -->
 <!-- ═══════════════════════════════════════════ -->
 <section id="view-questions" class="view">
-
-  <div class="q-controls">
-    <button id="showQuestionBtn" class="btn-primary">Show Next Question</button>
-    <button id="revealAnswerBtn" class="btn-secondary" disabled>Reveal Guidance</button>
-    <span id="qCounter" class="q-counter"></span>
+  <div class="q-wrapper">
+    <div class="q-card" id="questionCard">
+      <div class="q-num" id="qNumber">&mdash;</div>
+      <div class="q-body" id="qText">Press <strong>Show Next Question</strong> to begin.</div>
+    </div>
+    <div class="q-answer hidden" id="answerCard"></div>
+    <div class="q-controls">
+      <button class="btn-orange" id="showQuestionBtn">Show Next Question</button>
+      <button class="btn-navy" id="revealAnswerBtn" disabled>Reveal Guidance</button>
+      <span class="q-counter" id="qCounter"></span>
+    </div>
   </div>
-
-  <div id="questionCard" class="question-card">
-    <p class="q-placeholder">Press <strong>"Show Next Question"</strong> to begin.</p>
-  </div>
-
-  <div id="answerCard" class="answer-card hidden"></div>
 </section>
 
 <!-- ═══════════════════════════════════════════ -->
 <!--  VIEW 3 — STUDENT TASKS                    -->
 <!-- ═══════════════════════════════════════════ -->
 <section id="view-tasks" class="view">
-
-  <div class="tasks-header">
-    <p class="tasks-intro">Tasks are ordered from <strong>easiest</strong> to <strong>most complex</strong>. Work through them at your own pace.</p>
-    <div class="task-nav-strip">
-      <button id="prevTaskBtn" class="btn-sm" disabled>&laquo; Previous</button>
-      <span id="taskCounter" class="q-counter">Task 1 / 24</span>
-      <button id="nextTaskBtn" class="btn-sm">Next &raquo;</button>
-    </div>
+  <div class="tasks-shell">
+    <aside class="task-sidebar" id="taskSidebar"></aside>
+    <main class="task-main">
+      <div class="task-nav">
+        <button class="btn-sm" id="prevTaskBtn" disabled>&larr; Previous</button>
+        <span class="task-counter" id="taskCounter">Task 1 / 24</span>
+        <button class="btn-sm" id="nextTaskBtn">Next &rarr;</button>
+      </div>
+      <div class="task-card" id="taskCard"></div>
+      <div class="task-progress"><div class="task-progress-fill" id="taskProgressFill"></div></div>
+    </main>
   </div>
-
-  <div id="taskCard" class="task-card"></div>
-
-  <div class="task-progress-bar">
-    <div id="taskProgressFill" class="progress-fill"></div>
-  </div>
-  <div id="taskDots" class="task-dots"></div>
 </section>
 
 <script src="app.js"></script>
