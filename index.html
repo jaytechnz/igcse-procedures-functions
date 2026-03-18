@@ -15,7 +15,7 @@
 <div id="loginScreen" class="fullscreen login-bg">
   <div class="login-card">
     <div class="login-header">
-      <span class="chip-logo">0478</span>
+      
       <h1>Functions &amp; Parameters</h1>
       <p>Cambridge IGCSE Computer Science</p>
     </div>
@@ -25,7 +25,7 @@
     </div>
     <div id="loginForm">
       <label>School Email</label>
-      <input type="email" id="loginEmail" placeholder="you@school.edu" autocomplete="email"/>
+      <input type="email" id="loginEmail" placeholder="firstName.lastName@student.cga.school" autocomplete="email"/>
       <div id="loginPassGroup" class="hidden">
         <label>Password</label>
         <input type="password" id="loginPass" placeholder="Teacher password"/>
@@ -42,13 +42,13 @@
     <h2>Teacher Setup</h2>
     <p class="setup-intro">First time? Create your teacher password and whitelist student email addresses or domains.</p>
     <label>Teacher Email</label>
-    <input type="email" id="setupEmail" placeholder="teacher@school.edu"/>
+    <input type="email" id="setupEmail" placeholder="initial.lastName@cga.school"/>
     <label>Create Password</label>
     <input type="password" id="setupPass" placeholder="Choose a secure password"/>
     <label>Confirm Password</label>
     <input type="password" id="setupPass2" placeholder="Re-enter password"/>
     <label>Whitelisted Email Domain(s)</label>
-    <input type="text" id="setupDomains" placeholder="e.g. school.edu, academy.org"/>
+    <input type="text" id="setupDomains" placeholder="e.g. student.cga.school, cga.school"/>
     <p class="setup-hint">Students with email addresses ending in these domains can sign in. Separate multiple domains with commas.</p>
     <label>Whitelisted Individual Emails <span class="optional">(optional)</span></label>
     <textarea id="setupEmails" rows="4" placeholder="One email per line, e.g.&#10;alice@school.edu&#10;bob@school.edu"></textarea>
