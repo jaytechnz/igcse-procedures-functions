@@ -79,10 +79,6 @@
       <button class="pill" data-idx="3"><b>4</b> Return Value</button>
       <button class="pill" data-idx="4"><b>5</b> ByVal vs ByRef</button>
     </div>
-    <div class="variant-toggle" id="variantToggle">
-      <button class="vtab active" data-v="proc">Procedure</button>
-      <button class="vtab" data-v="func">Function</button>
-    </div>
     <div class="strip-right">
       <button class="lang-btn" id="langBtn">Show Java</button>
       <button class="reset-btn" id="resetBtn">↻ Reset</button>
@@ -90,9 +86,15 @@
   </div>
   <div class="instr" id="instr">Drag the highlighted argument from the Main Program into the matching parameter slot.</div>
   <div class="board">
+    <!-- Output row -->
     <div class="output-row hidden" id="outputStrip">
       <div class="output-strip"><div class="output-label">OUTPUT</div><div class="output-text" id="outputText"></div></div>
     </div>
+
+    <!-- ROW 1 LABEL -->
+    <div class="row-label rl-proc">Procedure Example</div>
+
+    <!-- ROW 1: PROCEDURE -->
     <div class="panel panel-left" id="panelLeft">
       <div class="panel-banner">Main Program</div>
       <div class="panel-code" id="mainCode"></div>
@@ -108,6 +110,27 @@
     <div class="panel panel-right" id="panelRight">
       <div class="panel-banner" id="defBanner">Procedure Definition</div>
       <div class="panel-code" id="defCode"></div>
+    </div>
+
+    <!-- ROW 2 LABEL -->
+    <div class="row-label rl-func" id="funcRowLabel">Function Example</div>
+
+    <!-- ROW 2: FUNCTION -->
+    <div class="panel panel-left" id="panelLeft2">
+      <div class="panel-banner">Main Program</div>
+      <div class="panel-code" id="mainCode2"></div>
+    </div>
+    <div class="flow-bridge" id="flowBridge2">
+      <div class="bridge-label">arguments<br/>pass →</div>
+      <svg class="bridge-svg" viewBox="0 0 50 24"><line x1="2" y1="12" x2="42" y2="12" stroke="#E87205" stroke-width="3" stroke-dasharray="6,4"/><polygon points="42,6 50,12 42,18" fill="#E87205"/></svg>
+      <div class="bridge-return" id="bridgeLabelReturn2">
+        <svg class="bridge-svg" viewBox="0 0 50 24"><line x1="8" y1="12" x2="48" y2="12" stroke="#5b000b" stroke-width="3" stroke-dasharray="6,4"/><polygon points="8,6 0,12 8,18" fill="#5b000b"/></svg>
+        <span class="bridge-label-r">← returns<br/>value</span>
+      </div>
+    </div>
+    <div class="panel panel-right" id="panelRight2">
+      <div class="panel-banner" id="defBanner2">Function Definition</div>
+      <div class="panel-code" id="defCode2"></div>
     </div>
   </div>
   <div class="java-overlay hidden" id="javaOverlay">

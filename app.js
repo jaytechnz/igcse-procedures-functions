@@ -351,57 +351,128 @@ const S = [
   },
 ];
 
-const $mainCode=document.getElementById('mainCode'),$defCode=document.getElementById('defCode'),$defBanner=document.getElementById('defBanner'),$instr=document.getElementById('instr'),$outputStrip=document.getElementById('outputStrip'),$outputText=document.getElementById('outputText'),$toast=document.getElementById('toast'),$bridgeRet=document.getElementById('bridgeLabelReturn'),$javaOverlay=document.getElementById('javaOverlay'),$javaCode=document.getElementById('javaCode'),$confetti=document.getElementById('confettiLayer');
-const $variantToggle=document.getElementById('variantToggle');
+const $mainCode=document.getElementById('mainCode'),$defCode=document.getElementById('defCode'),$defBanner=document.getElementById('defBanner');
+const $mainCode2=document.getElementById('mainCode2'),$defCode2=document.getElementById('defCode2'),$defBanner2=document.getElementById('defBanner2');
+const $funcRowLabel=document.getElementById('funcRowLabel');
+const $instr=document.getElementById('instr'),$outputStrip=document.getElementById('outputStrip'),$outputText=document.getElementById('outputText'),$toast=document.getElementById('toast');
+const $bridgeRet=document.getElementById('bridgeLabelReturn'),$bridgeRet2=document.getElementById('bridgeLabelReturn2');
+const $javaOverlay=document.getElementById('javaOverlay'),$javaCode=document.getElementById('javaCode'),$confetti=document.getElementById('confettiLayer');
 
-let sc=null,filledSlots={},returnDone=false,dragVal=null;
-let currentScenarioIdx=0, currentVariant='proc';
+let sc=null,scF=null; // proc and func scenarios
+let filledSlots={},returnDone=false,dragVal=null;
+let currentScenarioIdx=0;
 
-function loadDemo(idx, variant) {
+function loadDemo(idx) {
   currentScenarioIdx = idx;
   const scenario = S[idx];
+  sc = scenario.proc;
+  scF = scenario.func;
+  filledSlots={};returnDone=false;
+  $outputStrip.classList.add('hidden');$javaOverlay.classList.add('hidden');
+  $bridgeRet.classList.add('hidden');
+  $defBanner.textContent=sc.bannerText;
+  $instr.textContent=sc.instrStart;
+  $toast.className='toast';$confetti.innerHTML='';
+  renderMain($mainCode, sc, false, '');
+  renderDef($defCode, sc, false, '');
 
-  // Handle variant toggle visibility
-  if (scenario.singleMode) {
-    $variantToggle.classList.add('hidden');
-    currentVariant = 'proc';
+  // Render function row
+  if (scF) {
+    $funcRowLabel.classList.remove('hidden');
+    document.getElementById('panelLeft2').classList.remove('hidden');
+    document.getElementById('flowBridge2').classList.remove('hidden');
+    document.getElementById('panelRight2').classList.remove('hidden');
+    $defBanner2.textContent = scF.bannerText;
+    if (scF.returnPhase) $bridgeRet2.classList.remove('hidden');
+    else $bridgeRet2.classList.add('hidden');
+    renderMain($mainCode2, scF, false, 'f');
+    renderDef($defCode2, scF, false, 'f');
   } else {
-    $variantToggle.classList.remove('hidden');
-    if (variant) currentVariant = variant;
-    // Update toggle buttons
-    document.querySelectorAll('.vtab').forEach(v => v.classList.toggle('active', v.dataset.v === currentVariant));
+    $funcRowLabel.classList.add('hidden');
+    document.getElementById('panelLeft2').classList.add('hidden');
+    document.getElementById('flowBridge2').classList.add('hidden');
+    document.getElementById('panelRight2').classList.add('hidden');
   }
 
-  sc = scenario[currentVariant] || scenario.proc;
-  filledSlots={};returnDone=false;
-  $outputStrip.classList.add('hidden');$javaOverlay.classList.add('hidden');$bridgeRet.classList.add('hidden');
-  $defBanner.textContent=sc.bannerText;$instr.textContent=sc.instrStart;
-  $toast.className='toast';$confetti.innerHTML='';
-  renderMain(false);renderDef(false);
-  if(sc.noInteraction)setTimeout(()=>{$outputStrip.classList.remove('hidden');$outputText.textContent=sc.output;$instr.textContent='🎉 '+sc.explain;},1200);
+  // Auto-complete non-interactive scenarios
+  if(sc.noInteraction) setTimeout(()=>{
+    $outputStrip.classList.remove('hidden');
+    $outputText.textContent=sc.output;
+    $instr.textContent='🎉 '+sc.explain;
+    if(scF && scF.noInteraction){
+      $outputText.textContent = sc.output;
+    }
+  },1200);
 }
 
-// Variant toggle listeners
-document.querySelectorAll('.vtab').forEach(v => {
-  v.addEventListener('click', () => {
-    loadDemo(currentScenarioIdx, v.dataset.v);
+function renderMain(container, scenario, rp, prefix) {
+  container.innerHTML='';
+  scenario.mainLines.forEach(l=>{
+    const d=document.createElement('div');
+    d.className='code-line'+(l.indent?' indent-'+l.indent:'');
+    l.parts.forEach(p=>{
+      if(p.type==='text'){
+        const s=document.createElement('span');
+        s.className=l.dim?'code-comment':'code-text';
+        s.textContent=p.value;
+        d.appendChild(s);
+      } else if(p.type==='arg'){
+        const argId = prefix + p.id;
+        const slotId = prefix + p.id.replace('a','s');
+        d.appendChild(makeArg(p.value, argId, !!filledSlots[slotId], false, prefix));
+      }
+    });
+    container.appendChild(d);
   });
-});
-
-function renderMain(rp){
-  $mainCode.innerHTML='';
-  sc.mainLines.forEach(l=>{const d=document.createElement('div');d.className='code-line'+(l.indent?' indent-'+l.indent:'');l.parts.forEach(p=>{if(p.type==='text'){const s=document.createElement('span');s.className=l.dim?'code-comment':'code-text';s.textContent=p.value;d.appendChild(s);}else if(p.type==='arg'){d.appendChild(makeArg(p.value,p.id,!!filledSlots[p.id.replace('a','s')]));}});$mainCode.appendChild(d);});
-  if(rp&&!returnDone){const r=document.createElement('div');r.className='code-line';r.style.marginTop='.6rem';const l=document.createElement('span');l.className='code-text';l.textContent=sc.returnSlotLabel||'Result ← ';r.appendChild(l);r.appendChild(makeSlot('ret-main','return value',sc.returnChip.value,true));$mainCode.appendChild(r);}
-  if(returnDone){const r=document.createElement('div');r.className='code-line';r.style.marginTop='.6rem';const l=document.createElement('span');l.className='code-text';l.style.fontWeight='700';l.textContent=(sc.returnSlotLabel||'Result ← ')+sc.returnChip.label;r.appendChild(l);$mainCode.appendChild(r);}
+  // Return phase slot in main
+  if(rp && scenario.returnChip && !filledSlots[prefix+'ret-main']){
+    const r=document.createElement('div');r.className='code-line';r.style.marginTop='.3rem';
+    const l=document.createElement('span');l.className='code-text';
+    l.textContent=scenario.returnSlotLabel||'Result ← ';
+    r.appendChild(l);
+    r.appendChild(makeSlot(prefix+'ret-main','return value',scenario.returnChip.value,true));
+    container.appendChild(r);
+  }
+  if(filledSlots[prefix+'ret-main']){
+    const r=document.createElement('div');r.className='code-line';r.style.marginTop='.3rem';
+    const l=document.createElement('span');l.className='code-text';l.style.fontWeight='700';
+    l.textContent=(scenario.returnSlotLabel||'Result ← ')+scenario.returnChip.label;
+    r.appendChild(l);
+    container.appendChild(r);
+  }
 }
 
-function renderDef(rp){
-  $defCode.innerHTML='';
-  sc.defLines.forEach(l=>{const d=document.createElement('div');d.className='code-line'+(l.indent?' indent-'+l.indent:'');l.parts.forEach(p=>{if(p.type==='text'){const s=document.createElement('span');s.className='code-text';s.textContent=p.value;d.appendChild(s);}else if(p.type==='slot'){if(filledSlots[p.id]){const s=document.createElement('span');s.className='slot filled';s.textContent=p.label+' = '+filledSlots[p.id];d.appendChild(s);}else{d.appendChild(makeSlot(p.id,p.label,p.correct,false));}}});$defCode.appendChild(d);});
-  if(rp&&sc.returnChip&&!returnDone){const r=document.createElement('div');r.className='code-line';r.style.marginTop='.6rem';const l=document.createElement('span');l.className='code-text';l.textContent='RETURN → ';r.appendChild(l);r.appendChild(makeArg(sc.returnChip.label,'ret-chip',false,true));$defCode.appendChild(r);}
+function renderDef(container, scenario, rp, prefix) {
+  container.innerHTML='';
+  scenario.defLines.forEach(l=>{
+    const d=document.createElement('div');
+    d.className='code-line'+(l.indent?' indent-'+l.indent:'');
+    l.parts.forEach(p=>{
+      if(p.type==='text'){
+        const s=document.createElement('span');s.className='code-text';s.textContent=p.value;d.appendChild(s);
+      } else if(p.type==='slot'){
+        const slotId = prefix + p.id;
+        if(filledSlots[slotId]){
+          const s=document.createElement('span');s.className='slot filled';
+          s.textContent=p.label+' = '+filledSlots[slotId];d.appendChild(s);
+        } else {
+          d.appendChild(makeSlot(slotId,p.label,p.correct,false));
+        }
+      }
+    });
+    container.appendChild(d);
+  });
+  // Return chip in def
+  if(rp && scenario.returnChip && !filledSlots[prefix+'ret-main']){
+    const r=document.createElement('div');r.className='code-line';r.style.marginTop='.3rem';
+    const l=document.createElement('span');l.className='code-text';l.textContent='RETURN → ';
+    r.appendChild(l);
+    r.appendChild(makeArg(scenario.returnChip.label, prefix+'ret-chip', false, true, prefix));
+    container.appendChild(r);
+  }
 }
 
-function makeArg(label,id,sent,isRet){
+function makeArg(label,id,sent,isRet,prefix){
   const el=document.createElement('span');el.className='arg'+(sent?' sent':'')+(isRet?' ret-arg':'');el.textContent=label;el.draggable=!sent;el.dataset.val=label;if(sent)return el;
   el.addEventListener('dragstart',e=>{dragVal=label;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',label)}catch(_){};el.classList.add('dragging');});
   el.addEventListener('dragend',()=>{el.classList.remove('dragging');dragVal=null;});
@@ -422,25 +493,82 @@ function makeSlot(id,label,correct,isRet){
 
 function handleDemoDrop(slot,val){
   if(!val)return;const correct=slot.dataset.correct,id=slot.dataset.id;
+  const prefix = id.startsWith('f') ? 'f' : '';
+  const scenario = prefix === 'f' ? scF : sc;
+  const mainContainer = prefix === 'f' ? $mainCode2 : $mainCode;
+  const defContainer = prefix === 'f' ? $defCode2 : $defCode;
+
   if(val===correct){
     slot.textContent=slot.textContent.split('=')[0].trim()+' = '+val;slot.classList.add('filled');filledSlots[id]=val;demoToast('','');
-    const allFilled=sc.paramSlots.every(s=>filledSlots[s.id]);
-    if(id==='ret-main'){returnDone=true;setTimeout(()=>demoComplete(),600);}
-    else if(allFilled&&!sc.returnPhase)setTimeout(()=>demoComplete(),600);
-    else if(allFilled&&sc.returnPhase)setTimeout(()=>startReturn(),800);
-    if(!id.startsWith('ret'))setTimeout(()=>{renderMain(false);renderDef(false);},50);
+
+    const allFilled = scenario.paramSlots.every(s => filledSlots[prefix + s.id]);
+
+    if(id===prefix+'ret-main'){
+      // Return dropped in main — this row is complete
+      setTimeout(()=>{
+        renderMain(mainContainer, scenario, false, prefix);
+        renderDef(defContainer, scenario, false, prefix);
+        checkBothComplete();
+      },400);
+    } else if(allFilled && !scenario.returnPhase){
+      // All params filled, no return — this row is done
+      setTimeout(()=>{
+        renderMain(mainContainer, scenario, false, prefix);
+        renderDef(defContainer, scenario, false, prefix);
+        checkBothComplete();
+      },400);
+    } else if(allFilled && scenario.returnPhase){
+      // Enter return phase for this row
+      setTimeout(()=>{
+        if(prefix==='f') $bridgeRet2.classList.remove('hidden');
+        else $bridgeRet.classList.remove('hidden');
+        $instr.textContent='Now drag the return value back to the Main Program.';
+        renderMain(mainContainer, scenario, true, prefix);
+        renderDef(defContainer, scenario, true, prefix);
+      },600);
+    }
+    if(!id.includes('ret')){
+      setTimeout(()=>{
+        renderMain(mainContainer, scenario, false, prefix);
+        renderDef(defContainer, scenario, false, prefix);
+      },50);
+    }
   }else{slot.classList.add('wrong');demoToast('Not the right value for this slot!','err');setTimeout(()=>slot.classList.remove('wrong'),600);}
 }
 
-function startReturn(){$instr.textContent='The function computed a result. Drag the return value back to the Main Program.';$bridgeRet.classList.remove('hidden');renderMain(true);renderDef(true);}
-function demoComplete(){$outputStrip.classList.remove('hidden');$outputText.textContent=sc.output;$instr.textContent='🎉 '+sc.explain;confetti($confetti);renderMain(false);renderDef(false);}
+function checkBothComplete(){
+  // Check if proc row is done
+  const procDone = sc.noInteraction || (
+    sc.paramSlots.every(s => filledSlots[s.id]) &&
+    (!sc.returnPhase || filledSlots['ret-main'])
+  );
+  // Check if func row is done (or doesn't exist)
+  const funcDone = !scF || scF.noInteraction || (
+    scF.paramSlots.every(s => filledSlots['f'+s.id]) &&
+    (!scF.returnPhase || filledSlots['fret-main'])
+  );
+
+  if(procDone && funcDone){
+    $outputStrip.classList.remove('hidden');
+    $outputText.textContent = sc.output;
+    $instr.textContent='🎉 Both examples complete! ' + sc.explain;
+    confetti($confetti);
+  } else if(procDone && !funcDone){
+    $instr.textContent='✓ Procedure done! Now complete the Function example below.';
+  }
+}
 function demoToast(m,t){$toast.textContent=m;$toast.className='toast'+(t?' show '+t:'');if(m)setTimeout(()=>{$toast.className='toast';},2500);}
 
-document.querySelectorAll('.pill').forEach(p=>{p.addEventListener('click',()=>{document.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');loadDemo(+p.dataset.idx,'proc');});});
-document.getElementById('resetBtn').addEventListener('click',()=>loadDemo(currentScenarioIdx, currentVariant));
-document.getElementById('langBtn').addEventListener('click',()=>{$javaCode.textContent=sc.java;$javaOverlay.classList.remove('hidden');});
+document.querySelectorAll('.pill').forEach(p=>{p.addEventListener('click',()=>{document.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');loadDemo(+p.dataset.idx);});});
+document.getElementById('resetBtn').addEventListener('click',()=>loadDemo(currentScenarioIdx));
+document.getElementById('langBtn').addEventListener('click',()=>{
+  let java = sc.java;
+  if(scF) java += '\n\n─── Function Version ───\n\n' + scF.java;
+  $javaCode.textContent=java;
+  $javaOverlay.classList.remove('hidden');
+});
 document.getElementById('javaClose').addEventListener('click',()=>$javaOverlay.classList.add('hidden'));
-loadDemo(0,'proc');
+loadDemo(0);
 
 
 /* ══════════════════════════════════════════════
