@@ -15,7 +15,7 @@
 <div id="loginScreen" class="fullscreen login-bg">
   <div class="login-card">
     <div class="login-header">
-      
+      <span class="chip-logo">0478</span>
       <h1>Functions &amp; Parameters</h1>
       <p>Cambridge IGCSE Computer Science</p>
     </div>
@@ -25,7 +25,7 @@
     </div>
     <div id="loginForm">
       <label>School Email</label>
-      <input type="email" id="loginEmail" placeholder="firstName.lastName@student.cga.school" autocomplete="email"/>
+      <input type="email" id="loginEmail" placeholder="you@school.edu" autocomplete="email"/>
       <div id="loginPassGroup" class="hidden">
         <label>Password</label>
         <input type="password" id="loginPass" placeholder="Teacher password"/>
@@ -42,13 +42,13 @@
     <h2>Teacher Setup</h2>
     <p class="setup-intro">First time? Create your teacher password and whitelist student email addresses or domains.</p>
     <label>Teacher Email</label>
-    <input type="email" id="setupEmail" placeholder="initial.lastName@cga.school"/>
+    <input type="email" id="setupEmail" placeholder="teacher@school.edu"/>
     <label>Create Password</label>
     <input type="password" id="setupPass" placeholder="Choose a secure password"/>
     <label>Confirm Password</label>
     <input type="password" id="setupPass2" placeholder="Re-enter password"/>
     <label>Whitelisted Email Domain(s)</label>
-    <input type="text" id="setupDomains" placeholder="e.g. student.cga.school, cga.school"/>
+    <input type="text" id="setupDomains" placeholder="e.g. school.edu, academy.org"/>
     <p class="setup-hint">Students with email addresses ending in these domains can sign in. Separate multiple domains with commas.</p>
     <label>Whitelisted Individual Emails <span class="optional">(optional)</span></label>
     <textarea id="setupEmails" rows="4" placeholder="One email per line, e.g.&#10;alice@school.edu&#10;bob@school.edu"></textarea>
@@ -127,7 +127,7 @@
     <div class="dash-summary" id="dashSummary"></div>
     <div class="dash-table-wrap">
       <table class="dash-table" id="dashTable">
-        <thead><tr><th>Student</th><th>Tasks Completed</th><th>In Progress</th><th>Not Started</th><th>Details</th></tr></thead>
+        <thead><tr><th>Student</th><th>Tasks Done</th><th>Tasks In Progress</th><th>Tasks Not Started</th><th>Quiz Score</th><th>Quiz Attempts</th><th>Task Details</th></tr></thead>
         <tbody id="dashBody"></tbody>
       </table>
     </div>
@@ -143,19 +143,38 @@
   </div>
 </section>
 
-<!-- ═══════ QUESTIONS (both roles) ═══════ -->
+<!-- ═══════ QUIZ ═══════ -->
 <section id="view-questions" class="view hidden">
-  <div class="q-center">
-    <div class="q-card" id="qCard">
-      <div class="q-num" id="qNum">?</div>
-      <div class="q-body" id="qBody">Press <strong>Show Question</strong> to display a discussion question.</div>
-    </div>
-    <div class="q-answer hidden" id="qAnswer"></div>
-    <div class="q-btns">
-      <button class="btn-accent" id="showQBtn">Show Next Question</button>
-      <button class="btn-light" id="revealBtn" disabled>Reveal Guidance</button>
-      <span class="q-count" id="qCount"></span>
-    </div>
+  <div class="quiz-shell">
+    <aside class="quiz-sidebar">
+      <div class="quiz-side-title">Quiz Questions</div>
+      <div id="quizNav"></div>
+      <div class="quiz-score-box" id="quizScoreBox">
+        <div class="quiz-score-label">Your Score</div>
+        <div class="quiz-score-num" id="quizScoreNum">0 / 12</div>
+        <div class="quiz-attempts" id="quizAttempts">Attempts: 0</div>
+      </div>
+    </aside>
+    <main class="quiz-main">
+      <div class="quiz-q-card" id="quizQCard">
+        <div class="quiz-q-num" id="quizQNum">1</div>
+        <div class="quiz-q-body" id="quizQBody"></div>
+      </div>
+      <div class="quiz-answer-area">
+        <label class="quiz-answer-label">Your Answer</label>
+        <textarea id="quizInput" rows="4" placeholder="Type your answer here in full sentences..." spellcheck="true"></textarea>
+        <div class="quiz-answer-btns">
+          <button class="btn-accent" id="quizSubmit">Submit Answer</button>
+          <span class="quiz-attempt-info" id="quizAttemptInfo"></span>
+        </div>
+      </div>
+      <div class="quiz-feedback hidden" id="quizFeedback"></div>
+      <div class="quiz-nav-btns">
+        <button class="btn-sm" id="quizPrev" disabled>← Previous</button>
+        <span class="quiz-pos" id="quizPos">1 / 12</span>
+        <button class="btn-sm" id="quizNext">Next →</button>
+      </div>
+    </main>
   </div>
 </section>
 
