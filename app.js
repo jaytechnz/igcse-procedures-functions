@@ -29,6 +29,9 @@ document.querySelectorAll('.ltab').forEach(t => {
     t.classList.add('active');
     loginRole = t.dataset.role;
     document.getElementById('loginPassGroup').classList.toggle('hidden', loginRole === 'student');
+    document.getElementById('loginEmail').placeholder = loginRole === 'teacher'
+      ? 'i.lastName@cga.school'
+      : 'firstName.lastName@student.cga.school';
   });
 });
 
@@ -107,7 +110,7 @@ function enterApp() {
 function seedDemoStudents() {
   const demoStudents = [
     {
-      email: 'alice.chen@school.edu',
+      email: 'alice.chen@student.cga.school',
       prog: {
         0:{status:'done',code:'PROCEDURE Greet\n  Name = "Anika"\n  Argument is "Anika"\n  Data type is STRING',time:Date.now()-86400000},
         1:{status:'done',code:'Output is 14\n\npublic static void showDouble(int x) {\n    System.out.println(x * 2);\n}\nshowDouble(7);',time:Date.now()-86400000},
@@ -123,7 +126,7 @@ function seedDemoStudents() {
       }
     },
     {
-      email: 'bob.martinez@school.edu',
+      email: 'bob.martinez@student.cga.school',
       prog: {
         0:{status:'done',code:'Procedure name: Greet\nParameter: Name\nArgument: "Anika"\nData type: STRING',time:Date.now()-90000000},
         1:{status:'done',code:'Output is 14',time:Date.now()-85000000},
@@ -134,7 +137,7 @@ function seedDemoStudents() {
       }
     },
     {
-      email: 'fatima.khan@school.edu',
+      email: 'fatima.khan@student.cga.school',
       prog: {
         0:{status:'done',code:'(a) Greet\n(b) Name\n(c) "Anika"\n(d) STRING',time:Date.now()-100000000},
         1:{status:'done',code:'14\n\npublic static void showDouble(int x) {\n    System.out.println(x * 2);\n}\nshowDouble(7);',time:Date.now()-95000000},
@@ -162,7 +165,7 @@ function seedDemoStudents() {
 
   // Seed quiz data for demo students
   const demoQuiz = {
-    'alice.chen@school.edu': {
+    'alice.chen@student.cga.school': {
       0:{status:'correct',answer:'A procedure performs actions but does not return a value. A function returns a value. In Java a procedure is a void method.',attempts:1,time:Date.now()-50000000},
       1:{status:'correct',answer:'A parameter is the placeholder variable in the definition. An argument is the actual value you pass when you call the function.',attempts:2,time:Date.now()-48000000},
       2:{status:'correct',answer:'Parameters make code reusable and modular. You can pass different values each time and it is easier to test and debug.',attempts:1,time:Date.now()-46000000},
@@ -170,12 +173,12 @@ function seedDemoStudents() {
       4:{status:'partial',answer:'BYVAL means a copy is passed.',attempts:2,time:Date.now()-40000000},
       5:{status:'partial',answer:'BYREF means the original variable is changed. You use it for swapping.',attempts:1,time:Date.now()-38000000},
     },
-    'bob.martinez@school.edu': {
+    'bob.martinez@student.cga.school': {
       0:{status:'correct',answer:'A procedure does not return anything. A function returns a value.',attempts:3,time:Date.now()-60000000},
       1:{status:'partial',answer:'A parameter is in the definition and argument is what you pass.',attempts:2,time:Date.now()-55000000},
       2:{status:'wrong',answer:'Because it is better.',attempts:1,time:Date.now()-50000000},
     },
-    'fatima.khan@school.edu': {
+    'fatima.khan@student.cga.school': {
       0:{status:'correct',answer:'A procedure performs actions but does not return a value to the caller. A function computes something and returns a value. In Java, a procedure is a void method while a function has a return type like int or String.',attempts:1,time:Date.now()-70000000},
       1:{status:'correct',answer:'A parameter is the placeholder variable defined in the function header — it acts as a label. An argument is the actual value passed when you call the function. Parameters are defined, arguments are supplied.',attempts:1,time:Date.now()-68000000},
       2:{status:'correct',answer:'Using parameters makes code reusable and modular. The same procedure can work with different values each time it is called. It is also easier to test, debug and maintain because each module is independent.',attempts:1,time:Date.now()-66000000},
