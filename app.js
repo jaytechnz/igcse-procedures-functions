@@ -251,29 +251,142 @@ function confetti(el) {
    TEACHER DEMO
    ══════════════════════════════════════════════ */
 const S = [
-  { bannerText:'Procedure Definition', mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'CALL SayHello()'}],indent:0}], defLines:[{parts:[{type:'text',value:'PROCEDURE SayHello()'}],indent:0},{parts:[{type:'text',value:'OUTPUT "Hello, World!"'}],indent:1},{parts:[{type:'text',value:'ENDPROCEDURE'}],indent:0}], paramSlots:[], output:'Hello, World!', returnPhase:false, returnChip:null, returnSlotLabel:null, java:'// Main\nsayHello();\n\npublic static void sayHello() {\n    System.out.println("Hello, World!");\n}', explain:'No parameters — the procedure runs the same way every time.', noInteraction:true, instrStart:'No parameters to pass! The call just runs the procedure directly.' },
 
-  { bannerText:'Procedure Definition', mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'Name ← "Alice"'}],indent:0},{parts:[{type:'text',value:'CALL Greet('},{type:'arg',value:'"Alice"',id:'a1'},{type:'text',value:')'}],indent:0}], defLines:[{parts:[{type:'text',value:'PROCEDURE Greet('},{type:'slot',id:'s1',label:'Name',correct:'"Alice"'},{type:'text',value:' : STRING)'}],indent:0},{parts:[{type:'text',value:'OUTPUT "Hello, " & Name'}],indent:1},{parts:[{type:'text',value:'ENDPROCEDURE'}],indent:0}], paramSlots:[{id:'s1',correct:'"Alice"'}], output:'Hello, Alice', returnPhase:false, returnChip:null, returnSlotLabel:null, java:'String name = "Alice";\ngreet(name);\n\npublic static void greet(String name) {\n    System.out.println("Hello, " + name);\n}', explain:'The argument "Alice" was passed into the parameter Name.', noInteraction:false, instrStart:'Drag the orange "Alice" chip from the Main Program into the Name slot in the Definition.' },
+  // ─── 0: No Parameters ───
+  { proc: {
+      bannerText:'Procedure Definition',
+      mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'CALL SayHello()'}],indent:0}],
+      defLines:[{parts:[{type:'text',value:'PROCEDURE SayHello()'}],indent:0},{parts:[{type:'text',value:'OUTPUT "Hello, World!"'}],indent:1},{parts:[{type:'text',value:'ENDPROCEDURE'}],indent:0}],
+      paramSlots:[], output:'Hello, World!', returnPhase:false, returnChip:null, returnSlotLabel:null,
+      java:'// Main\nsayHello();\n\n// Definition\npublic static void sayHello() {\n    System.out.println("Hello, World!");\n}',
+      explain:'No parameters — the procedure runs the same way every time.', noInteraction:true,
+      instrStart:'No parameters to pass! The procedure just runs directly.',
+    },
+    func: {
+      bannerText:'Function Definition',
+      mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'DECLARE Greeting : STRING'}],indent:0},{parts:[{type:'text',value:'Greeting ← GetGreeting()'}],indent:0},{parts:[{type:'text',value:'OUTPUT Greeting'}],indent:0}],
+      defLines:[{parts:[{type:'text',value:'FUNCTION GetGreeting() RETURNS STRING'}],indent:0},{parts:[{type:'text',value:'RETURN "Hello, World!"'}],indent:1},{parts:[{type:'text',value:'ENDFUNCTION'}],indent:0}],
+      paramSlots:[], output:'Hello, World!', returnPhase:false, returnChip:null, returnSlotLabel:null,
+      java:'// Main\nString greeting = getGreeting();\nSystem.out.println(greeting);\n\n// Definition\npublic static String getGreeting() {\n    return "Hello, World!";\n}',
+      explain:'No parameters — but unlike a procedure, this function RETURNS a value that the main program stores in a variable.', noInteraction:true,
+      instrStart:'No parameters to pass! The function returns "Hello, World!" which is stored in Greeting.',
+    },
+  },
 
-  { bannerText:'Procedure Definition', mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'X ← 5'}],indent:0},{parts:[{type:'text',value:'Y ← 3'}],indent:0},{parts:[{type:'text',value:'CALL Add('},{type:'arg',value:'5',id:'a1'},{type:'text',value:', '},{type:'arg',value:'3',id:'a2'},{type:'text',value:')'}],indent:0}], defLines:[{parts:[{type:'text',value:'PROCEDURE Add('},{type:'slot',id:'s1',label:'X',correct:'5'},{type:'text',value:' : INTEGER, '},{type:'slot',id:'s2',label:'Y',correct:'3'},{type:'text',value:' : INTEGER)'}],indent:0},{parts:[{type:'text',value:'OUTPUT X + Y'}],indent:1},{parts:[{type:'text',value:'ENDPROCEDURE'}],indent:0}], paramSlots:[{id:'s1',correct:'5'},{id:'s2',correct:'3'}], output:'8', returnPhase:false, returnChip:null, returnSlotLabel:null, java:'int x = 5, y = 3;\nadd(x, y);\n\npublic static void add(int x, int y) {\n    System.out.println(x + y);\n}', explain:'Arguments matched by position: 5 → X (1st), 3 → Y (2nd).', noInteraction:false, instrStart:'Drag 5 into X, then 3 into Y. Arguments match parameters by position.' },
+  // ─── 1: One Parameter ───
+  { proc: {
+      bannerText:'Procedure Definition',
+      mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'Name ← "Alice"'}],indent:0},{parts:[{type:'text',value:'CALL Greet('},{type:'arg',value:'"Alice"',id:'a1'},{type:'text',value:')'}],indent:0}],
+      defLines:[{parts:[{type:'text',value:'PROCEDURE Greet('},{type:'slot',id:'s1',label:'Name',correct:'"Alice"'},{type:'text',value:' : STRING)'}],indent:0},{parts:[{type:'text',value:'OUTPUT "Hello, " & Name'}],indent:1},{parts:[{type:'text',value:'ENDPROCEDURE'}],indent:0}],
+      paramSlots:[{id:'s1',correct:'"Alice"'}], output:'Hello, Alice', returnPhase:false, returnChip:null, returnSlotLabel:null,
+      java:'// Main\nString name = "Alice";\ngreet(name);\n\n// Definition\npublic static void greet(String name) {\n    System.out.println("Hello, " + name);\n}',
+      explain:'The argument "Alice" was passed into the parameter Name. The procedure outputs directly.', noInteraction:false,
+      instrStart:'Drag "Alice" from the Main Program into the Name slot in the Procedure.',
+    },
+    func: {
+      bannerText:'Function Definition',
+      mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'DECLARE Msg : STRING'}],indent:0},{parts:[{type:'text',value:'Msg ← MakeGreeting('},{type:'arg',value:'"Alice"',id:'a1'},{type:'text',value:')'}],indent:0},{parts:[{type:'text',value:'OUTPUT Msg'}],indent:0}],
+      defLines:[{parts:[{type:'text',value:'FUNCTION MakeGreeting('},{type:'slot',id:'s1',label:'Name',correct:'"Alice"'},{type:'text',value:' : STRING) RETURNS STRING'}],indent:0},{parts:[{type:'text',value:'RETURN "Hello, " & Name'}],indent:1},{parts:[{type:'text',value:'ENDFUNCTION'}],indent:0}],
+      paramSlots:[{id:'s1',correct:'"Alice"'}], output:'Hello, Alice', returnPhase:true, returnChip:{label:'"Hello, Alice"',value:'"Hello, Alice"'}, returnSlotLabel:'Msg ← ',
+      java:'// Main\nString msg = makeGreeting("Alice");\nSystem.out.println(msg);\n\n// Definition\npublic static String makeGreeting(String name) {\n    return "Hello, " + name;\n}',
+      explain:'"Alice" was passed into Name. The function RETURNS the greeting string back to the main program.', noInteraction:false,
+      instrStart:'Drag "Alice" into the Name slot. Then drag the return value back to the Main Program.',
+    },
+  },
 
-  { bannerText:'Function Definition', mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'Result ← Square('},{type:'arg',value:'4',id:'a1'},{type:'text',value:')'}],indent:0},{parts:[{type:'text',value:'OUTPUT Result'}],indent:0}], defLines:[{parts:[{type:'text',value:'FUNCTION Square('},{type:'slot',id:'s1',label:'Num',correct:'4'},{type:'text',value:' : INTEGER) RETURNS INTEGER'}],indent:0},{parts:[{type:'text',value:'RETURN Num * Num'}],indent:1},{parts:[{type:'text',value:'ENDFUNCTION'}],indent:0}], paramSlots:[{id:'s1',correct:'4'}], output:'Result = 16', returnPhase:true, returnChip:{label:'16',value:'16'}, returnSlotLabel:'Result ← ', java:'int result = square(4);\n\npublic static int square(int num) {\n    return num * num;\n}', explain:'4 was passed in, 4 × 4 = 16 computed, and 16 RETURNED to the caller.', noInteraction:false, instrStart:'Drag 4 into Num. Then drag the return value back to the Main Program.' },
+  // ─── 2: Two Parameters ───
+  { proc: {
+      bannerText:'Procedure Definition',
+      mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'X ← 5'}],indent:0},{parts:[{type:'text',value:'Y ← 3'}],indent:0},{parts:[{type:'text',value:'CALL Add('},{type:'arg',value:'5',id:'a1'},{type:'text',value:', '},{type:'arg',value:'3',id:'a2'},{type:'text',value:')'}],indent:0}],
+      defLines:[{parts:[{type:'text',value:'PROCEDURE Add('},{type:'slot',id:'s1',label:'X',correct:'5'},{type:'text',value:' : INTEGER, '},{type:'slot',id:'s2',label:'Y',correct:'3'},{type:'text',value:' : INTEGER)'}],indent:0},{parts:[{type:'text',value:'OUTPUT X + Y'}],indent:1},{parts:[{type:'text',value:'ENDPROCEDURE'}],indent:0}],
+      paramSlots:[{id:'s1',correct:'5'},{id:'s2',correct:'3'}], output:'8', returnPhase:false, returnChip:null, returnSlotLabel:null,
+      java:'// Main\nint x = 5, y = 3;\nadd(x, y);\n\n// Definition\npublic static void add(int x, int y) {\n    System.out.println(x + y);\n}',
+      explain:'Arguments matched by position: 5 → X (1st), 3 → Y (2nd). The procedure outputs directly.', noInteraction:false,
+      instrStart:'Drag 5 into X, then 3 into Y. Arguments match parameters by position.',
+    },
+    func: {
+      bannerText:'Function Definition',
+      mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'DECLARE Result : INTEGER'}],indent:0},{parts:[{type:'text',value:'Result ← Add('},{type:'arg',value:'5',id:'a1'},{type:'text',value:', '},{type:'arg',value:'3',id:'a2'},{type:'text',value:')'}],indent:0},{parts:[{type:'text',value:'OUTPUT Result'}],indent:0}],
+      defLines:[{parts:[{type:'text',value:'FUNCTION Add('},{type:'slot',id:'s1',label:'X',correct:'5'},{type:'text',value:' : INTEGER, '},{type:'slot',id:'s2',label:'Y',correct:'3'},{type:'text',value:' : INTEGER) RETURNS INTEGER'}],indent:0},{parts:[{type:'text',value:'RETURN X + Y'}],indent:1},{parts:[{type:'text',value:'ENDFUNCTION'}],indent:0}],
+      paramSlots:[{id:'s1',correct:'5'},{id:'s2',correct:'3'}], output:'Result = 8', returnPhase:true, returnChip:{label:'8',value:'8'}, returnSlotLabel:'Result ← ',
+      java:'// Main\nint result = add(5, 3);\nSystem.out.println(result);\n\n// Definition\npublic static int add(int x, int y) {\n    return x + y;\n}',
+      explain:'5 → X, 3 → Y by position. The function RETURNS 8, which the main program stores in Result.', noInteraction:false,
+      instrStart:'Drag 5 into X, then 3 into Y. Then drag the return value back to the Main Program.',
+    },
+  },
 
-  { bannerText:'Procedure Definition', mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'MyNum ← 7'}],indent:0},{parts:[{type:'text',value:'CALL DoubleIt('},{type:'arg',value:'MyNum (7)',id:'a1'},{type:'text',value:')'}],indent:0},{parts:[{type:'text',value:'OUTPUT MyNum'}],indent:0}], defLines:[{parts:[{type:'text',value:'PROCEDURE DoubleIt(BYREF '},{type:'slot',id:'s1',label:'N',correct:'MyNum (7)'},{type:'text',value:' : INTEGER)'}],indent:0},{parts:[{type:'text',value:'N ← N * 2'}],indent:1},{parts:[{type:'text',value:'ENDPROCEDURE'}],indent:0}], paramSlots:[{id:'s1',correct:'MyNum (7)'}], output:'MyNum = 14  (original changed by BYREF!)', returnPhase:true, returnChip:{label:'14',value:'14'}, returnSlotLabel:'MyNum is now ← ', java:'// Java: use array to mimic BYREF\nint[] myNum = {7};\ndoubleIt(myNum);\n// myNum[0] = 14\n\npublic static void doubleIt(int[] arr) {\n    arr[0] = arr[0] * 2;\n}', explain:'BYREF passed a reference — the original MyNum changed from 7 to 14.', noInteraction:false, instrStart:'Drag MyNum (7) into the N slot. BYREF means the original variable gets modified.' },
+  // ─── 3: Return Value (function only — no variant toggle) ───
+  { proc: {
+      bannerText:'Function Definition',
+      mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'DECLARE Result : INTEGER'}],indent:0},{parts:[{type:'text',value:'Result ← Square('},{type:'arg',value:'4',id:'a1'},{type:'text',value:')'}],indent:0},{parts:[{type:'text',value:'OUTPUT Result'}],indent:0}],
+      defLines:[{parts:[{type:'text',value:'FUNCTION Square('},{type:'slot',id:'s1',label:'Num',correct:'4'},{type:'text',value:' : INTEGER) RETURNS INTEGER'}],indent:0},{parts:[{type:'text',value:'RETURN Num * Num'}],indent:1},{parts:[{type:'text',value:'ENDFUNCTION'}],indent:0}],
+      paramSlots:[{id:'s1',correct:'4'}], output:'Result = 16', returnPhase:true, returnChip:{label:'16',value:'16'}, returnSlotLabel:'Result ← ',
+      java:'// Main\nint result = square(4);\nSystem.out.println(result);\n\n// Definition\npublic static int square(int num) {\n    return num * num;\n}',
+      explain:'4 was passed in, 4 × 4 = 16 computed, and 16 RETURNED to the caller.', noInteraction:false,
+      instrStart:'Drag 4 into Num. Then drag the return value back to the Main Program.',
+    },
+    func: null, // no variant — this is already a function-only demo
+    singleMode: true,
+  },
+
+  // ─── 4: ByVal vs ByRef ───
+  { proc: {
+      bannerText:'Procedure Definition (BYREF)',
+      mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'MyNum ← 7'}],indent:0},{parts:[{type:'text',value:'CALL DoubleIt('},{type:'arg',value:'MyNum (7)',id:'a1'},{type:'text',value:')'}],indent:0},{parts:[{type:'text',value:'OUTPUT MyNum'}],indent:0}],
+      defLines:[{parts:[{type:'text',value:'PROCEDURE DoubleIt(BYREF '},{type:'slot',id:'s1',label:'N',correct:'MyNum (7)'},{type:'text',value:' : INTEGER)'}],indent:0},{parts:[{type:'text',value:'N ← N * 2'}],indent:1},{parts:[{type:'text',value:'ENDPROCEDURE'}],indent:0}],
+      paramSlots:[{id:'s1',correct:'MyNum (7)'}], output:'MyNum = 14  (original changed by BYREF!)', returnPhase:true, returnChip:{label:'14',value:'14'}, returnSlotLabel:'MyNum is now ← ',
+      java:'// Java: use array to mimic BYREF\nint[] myNum = {7};\ndoubleIt(myNum);\nSystem.out.println(myNum[0]); // 14\n\npublic static void doubleIt(int[] arr) {\n    arr[0] = arr[0] * 2;\n}',
+      explain:'BYREF passed a reference — the procedure changed the original MyNum from 7 to 14.', noInteraction:false,
+      instrStart:'Drag MyNum (7) into N. BYREF means the original variable gets modified.',
+    },
+    func: {
+      bannerText:'Function Definition (BYVAL)',
+      mainLines:[{parts:[{type:'text',value:'// Main Program'}],indent:0,dim:true},{parts:[{type:'text',value:'DECLARE MyNum : INTEGER'}],indent:0},{parts:[{type:'text',value:'MyNum ← 7'}],indent:0},{parts:[{type:'text',value:'DECLARE Result : INTEGER'}],indent:0},{parts:[{type:'text',value:'Result ← DoubleIt('},{type:'arg',value:'MyNum (7)',id:'a1'},{type:'text',value:')'}],indent:0},{parts:[{type:'text',value:'OUTPUT Result'}],indent:0},{parts:[{type:'text',value:'OUTPUT MyNum'}],indent:0}],
+      defLines:[{parts:[{type:'text',value:'FUNCTION DoubleIt(BYVAL '},{type:'slot',id:'s1',label:'N',correct:'MyNum (7)'},{type:'text',value:' : INTEGER) RETURNS INTEGER'}],indent:0},{parts:[{type:'text',value:'RETURN N * 2'}],indent:1},{parts:[{type:'text',value:'ENDFUNCTION'}],indent:0}],
+      paramSlots:[{id:'s1',correct:'MyNum (7)'}], output:'Result = 14,  MyNum still = 7  (BYVAL — original unchanged!)', returnPhase:true, returnChip:{label:'14',value:'14'}, returnSlotLabel:'Result ← ',
+      java:'// Main\nint myNum = 7;\nint result = doubleIt(myNum);\nSystem.out.println(result); // 14\nSystem.out.println(myNum);  // still 7\n\npublic static int doubleIt(int n) {\n    return n * 2;\n}',
+      explain:'BYVAL passed a copy — the function returns 14 but the original MyNum stays at 7. Compare with the BYREF procedure!', noInteraction:false,
+      instrStart:'Drag MyNum (7) into N. BYVAL means the function gets a copy — the original won\'t change.',
+    },
+  },
 ];
 
 const $mainCode=document.getElementById('mainCode'),$defCode=document.getElementById('defCode'),$defBanner=document.getElementById('defBanner'),$instr=document.getElementById('instr'),$outputStrip=document.getElementById('outputStrip'),$outputText=document.getElementById('outputText'),$toast=document.getElementById('toast'),$bridgeRet=document.getElementById('bridgeLabelReturn'),$javaOverlay=document.getElementById('javaOverlay'),$javaCode=document.getElementById('javaCode'),$confetti=document.getElementById('confettiLayer');
+const $variantToggle=document.getElementById('variantToggle');
 
 let sc=null,filledSlots={},returnDone=false,dragVal=null;
+let currentScenarioIdx=0, currentVariant='proc';
 
-function loadDemo(idx){
-  sc=S[idx];filledSlots={};returnDone=false;
+function loadDemo(idx, variant) {
+  currentScenarioIdx = idx;
+  const scenario = S[idx];
+
+  // Handle variant toggle visibility
+  if (scenario.singleMode) {
+    $variantToggle.classList.add('hidden');
+    currentVariant = 'proc';
+  } else {
+    $variantToggle.classList.remove('hidden');
+    if (variant) currentVariant = variant;
+    // Update toggle buttons
+    document.querySelectorAll('.vtab').forEach(v => v.classList.toggle('active', v.dataset.v === currentVariant));
+  }
+
+  sc = scenario[currentVariant] || scenario.proc;
+  filledSlots={};returnDone=false;
   $outputStrip.classList.add('hidden');$javaOverlay.classList.add('hidden');$bridgeRet.classList.add('hidden');
   $defBanner.textContent=sc.bannerText;$instr.textContent=sc.instrStart;
   $toast.className='toast';$confetti.innerHTML='';
   renderMain(false);renderDef(false);
   if(sc.noInteraction)setTimeout(()=>{$outputStrip.classList.remove('hidden');$outputText.textContent=sc.output;$instr.textContent='🎉 '+sc.explain;},1200);
 }
+
+// Variant toggle listeners
+document.querySelectorAll('.vtab').forEach(v => {
+  v.addEventListener('click', () => {
+    loadDemo(currentScenarioIdx, v.dataset.v);
+  });
+});
 
 function renderMain(rp){
   $mainCode.innerHTML='';
@@ -323,11 +436,11 @@ function startReturn(){$instr.textContent='The function computed a result. Drag 
 function demoComplete(){$outputStrip.classList.remove('hidden');$outputText.textContent=sc.output;$instr.textContent='🎉 '+sc.explain;confetti($confetti);renderMain(false);renderDef(false);}
 function demoToast(m,t){$toast.textContent=m;$toast.className='toast'+(t?' show '+t:'');if(m)setTimeout(()=>{$toast.className='toast';},2500);}
 
-document.querySelectorAll('.pill').forEach(p=>{p.addEventListener('click',()=>{document.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');loadDemo(+p.dataset.idx);});});
-document.getElementById('resetBtn').addEventListener('click',()=>loadDemo(+document.querySelector('.pill.active').dataset.idx));
+document.querySelectorAll('.pill').forEach(p=>{p.addEventListener('click',()=>{document.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');loadDemo(+p.dataset.idx,'proc');});});
+document.getElementById('resetBtn').addEventListener('click',()=>loadDemo(currentScenarioIdx, currentVariant));
 document.getElementById('langBtn').addEventListener('click',()=>{$javaCode.textContent=sc.java;$javaOverlay.classList.remove('hidden');});
 document.getElementById('javaClose').addEventListener('click',()=>$javaOverlay.classList.add('hidden'));
-loadDemo(0);
+loadDemo(0,'proc');
 
 
 /* ══════════════════════════════════════════════
