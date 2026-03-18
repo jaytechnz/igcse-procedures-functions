@@ -1,171 +1,201 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Functions &amp; Parameters — IGCSE 0478</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Anybody:wght@400;600;700;900&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Anybody:wght@400;600;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 </head>
 <body>
 
-<!-- ─── TOP NAV ─── -->
-<header id="topbar">
-  <div class="topbar-brand">
-    <span class="logo-chip">0478</span>
-    <div class="brand-text">
-      <span class="brand-title">Functions &amp; Parameters</span>
-      <span class="brand-sub">Cambridge IGCSE Computer Science</span>
+<!-- ═══════════════ LOGIN ═══════════════ -->
+<div id="loginScreen" class="fullscreen login-bg">
+  <div class="login-card">
+    <div class="login-header">
+      <span class="chip-logo">0478</span>
+      <h1>Functions &amp; Parameters</h1>
+      <p>Cambridge IGCSE Computer Science</p>
+    </div>
+    <div class="login-tabs">
+      <button class="ltab active" data-role="student">Student</button>
+      <button class="ltab" data-role="teacher">Teacher</button>
+    </div>
+    <div id="loginForm">
+      <label>School Email</label>
+      <input type="email" id="loginEmail" placeholder="you@school.edu" autocomplete="email"/>
+      <div id="loginPassGroup" class="hidden">
+        <label>Password</label>
+        <input type="password" id="loginPass" placeholder="Teacher password"/>
+      </div>
+      <button class="btn-login" id="loginBtn">Sign In</button>
+      <div class="login-error hidden" id="loginError"></div>
     </div>
   </div>
-  <nav class="topbar-tabs">
-    <button class="tab active" data-view="demo">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-      Interactive Demo
-    </button>
-    <button class="tab" data-view="questions">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      Discussion Questions
-    </button>
-    <button class="tab" data-view="tasks">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      Student Tasks
-    </button>
-  </nav>
+</div>
+
+<!-- ═══════════════ TEACHER SETUP ═══════════════ -->
+<div id="setupScreen" class="fullscreen login-bg hidden">
+  <div class="login-card setup-card">
+    <h2>Teacher Setup</h2>
+    <p class="setup-intro">First time? Create your teacher password and whitelist student email addresses or domains.</p>
+    <label>Teacher Email</label>
+    <input type="email" id="setupEmail" placeholder="teacher@school.edu"/>
+    <label>Create Password</label>
+    <input type="password" id="setupPass" placeholder="Choose a secure password"/>
+    <label>Confirm Password</label>
+    <input type="password" id="setupPass2" placeholder="Re-enter password"/>
+    <label>Whitelisted Email Domain(s)</label>
+    <input type="text" id="setupDomains" placeholder="e.g. school.edu, academy.org"/>
+    <p class="setup-hint">Students with email addresses ending in these domains can sign in. Separate multiple domains with commas.</p>
+    <label>Whitelisted Individual Emails <span class="optional">(optional)</span></label>
+    <textarea id="setupEmails" rows="4" placeholder="One email per line, e.g.&#10;alice@school.edu&#10;bob@school.edu"></textarea>
+    <button class="btn-login" id="setupBtn">Save &amp; Continue</button>
+    <div class="login-error hidden" id="setupError"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN APP ═══════════════ -->
+<div id="appShell" class="hidden">
+
+<header id="topbar">
+  <div class="brand">
+    <span class="chip-logo">0478</span>
+    <span class="brand-title">Functions &amp; Parameters</span>
+  </div>
+  <nav class="tabs" id="mainTabs"></nav>
+  <div class="user-badge" id="userBadge"></div>
 </header>
 
-<!-- ═══════════════════════════════════════════ -->
-<!--  VIEW 1 — INTERACTIVE DEMO                 -->
-<!-- ═══════════════════════════════════════════ -->
-<section id="view-demo" class="view active">
-
-  <!-- Scenario selector bar -->
-  <div class="scenario-bar">
-    <button class="scenario-pill active" data-idx="0"><span class="pill-num">1</span> No Parameters</button>
-    <button class="scenario-pill" data-idx="1"><span class="pill-num">2</span> One Parameter</button>
-    <button class="scenario-pill" data-idx="2"><span class="pill-num">3</span> Two Parameters</button>
-    <button class="scenario-pill" data-idx="3"><span class="pill-num">4</span> Return Values</button>
-    <button class="scenario-pill" data-idx="4"><span class="pill-num">5</span> ByVal vs ByRef</button>
-  </div>
-
-  <div class="demo-layout">
-
-    <!-- LEFT COLUMN — Code comparison -->
-    <div class="code-col">
-      <div class="code-card">
-        <div class="code-card-head">
-          <div class="lang-dot pseudo-dot"></div>
-          CIE Pseudocode
-        </div>
-        <pre class="code-pre" id="codePseudo"></pre>
-      </div>
-      <div class="code-card java-card">
-        <div class="code-card-head">
-          <div class="lang-dot java-dot"></div>
-          Java
-        </div>
-        <pre class="code-pre" id="codeJava"></pre>
-      </div>
-      <div class="explain-card" id="explainCard"></div>
+<!-- ═══════ TEACHER DEMO ═══════ -->
+<section id="view-demo" class="view hidden">
+  <div class="demo-topstrip">
+    <div class="scenario-pills">
+      <button class="pill active" data-idx="0"><b>1</b> No Params</button>
+      <button class="pill" data-idx="1"><b>2</b> One Param</button>
+      <button class="pill" data-idx="2"><b>3</b> Two Params</button>
+      <button class="pill" data-idx="3"><b>4</b> Return Value</button>
+      <button class="pill" data-idx="4"><b>5</b> ByVal vs ByRef</button>
     </div>
-
-    <!-- RIGHT COLUMN — Visual "function machine" -->
-    <div class="machine-col">
-      <div class="machine-frame">
-
-        <!-- Instruction banner -->
-        <div class="instr-banner" id="instrBanner">
-          <div class="instr-step" id="instrStep">Getting started</div>
-          <div class="instr-text" id="instrText">Choose a scenario from the tabs above.</div>
-        </div>
-
-        <!-- CALLER area -->
-        <div class="area-label caller-label">CALLER &mdash; values you send</div>
-        <div class="caller-tray" id="callerTray"></div>
-
-        <!-- Arrow down -->
-        <div class="arrow-track">
-          <div class="arrow-shaft"></div>
-          <div class="arrow-head">&#9660;</div>
-          <div class="arrow-word" id="arrowWord">pass</div>
-        </div>
-
-        <!-- THE FUNCTION BOX -->
-        <div class="fn-machine" id="fnMachine">
-          <div class="fn-machine-title" id="fnMachineTitle">PROCEDURE SayHello()</div>
-          <div class="fn-machine-slots" id="fnMachineSlots">
-            <!-- param slots rendered by JS -->
-          </div>
-          <div class="fn-machine-body" id="fnMachineBody">OUTPUT "Hello!"</div>
-        </div>
-
-        <!-- Arrow up (return) -->
-        <div class="arrow-track arrow-return hidden" id="returnArrow">
-          <div class="arrow-word">returns</div>
-          <div class="arrow-head" style="transform:rotate(180deg)">&#9660;</div>
-          <div class="arrow-shaft"></div>
-        </div>
-
-        <!-- RETURN area -->
-        <div class="return-area hidden" id="returnArea">
-          <div class="area-label return-label">RETURN VALUE</div>
-          <div class="return-tray">
-            <div class="return-drop" id="returnDrop"><span class="drop-ph">drop result here</span></div>
-            <div class="return-options" id="returnOptions"></div>
-          </div>
-        </div>
-
-        <!-- Feedback toast -->
-        <div class="feedback-toast" id="feedbackToast"></div>
-
-        <!-- Reset -->
-        <button class="reset-btn" id="resetBtn" title="Reset this scenario">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
-          Reset
-        </button>
-
+    <div class="strip-right">
+      <button class="lang-btn" id="langBtn">Show Java</button>
+      <button class="reset-btn" id="resetBtn">↻ Reset</button>
+    </div>
+  </div>
+  <div class="instr" id="instr">Drag the highlighted argument from the Main Program into the matching parameter slot.</div>
+  <div class="board">
+    <div class="output-row hidden" id="outputStrip">
+      <div class="output-strip"><div class="output-label">OUTPUT</div><div class="output-text" id="outputText"></div></div>
+    </div>
+    <div class="panel panel-left" id="panelLeft">
+      <div class="panel-banner">Main Program</div>
+      <div class="panel-code" id="mainCode"></div>
+    </div>
+    <div class="flow-bridge" id="flowBridge">
+      <div class="bridge-label" id="bridgeLabel">arguments<br/>pass →</div>
+      <svg class="bridge-svg" viewBox="0 0 50 24"><line x1="2" y1="12" x2="42" y2="12" stroke="#E87205" stroke-width="3" stroke-dasharray="6,4"/><polygon points="42,6 50,12 42,18" fill="#E87205"/></svg>
+      <div class="bridge-return hidden" id="bridgeLabelReturn">
+        <svg class="bridge-svg" viewBox="0 0 50 24"><line x1="8" y1="12" x2="48" y2="12" stroke="#5b000b" stroke-width="3" stroke-dasharray="6,4"/><polygon points="8,6 0,12 8,18" fill="#5b000b"/></svg>
+        <span class="bridge-label-r">← returns<br/>value</span>
       </div>
+    </div>
+    <div class="panel panel-right" id="panelRight">
+      <div class="panel-banner" id="defBanner">Procedure Definition</div>
+      <div class="panel-code" id="defCode"></div>
+    </div>
+  </div>
+  <div class="java-overlay hidden" id="javaOverlay">
+    <div class="java-box">
+      <div class="java-head">Java Equivalent <button class="java-close" id="javaClose">✕</button></div>
+      <pre class="java-code" id="javaCode"></pre>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="confetti-layer" id="confettiLayer"></div>
+</section>
+
+<!-- ═══════ TEACHER DASHBOARD ═══════ -->
+<section id="view-dashboard" class="view hidden">
+  <div class="dash-wrap">
+    <h2 class="dash-title">Student Progress Dashboard</h2>
+    <div class="dash-controls">
+      <button class="btn-accent btn-sm" id="dashRefresh">↻ Refresh</button>
+      <button class="btn-sm" id="manageWhitelist">Manage Whitelist</button>
+    </div>
+    <div class="dash-summary" id="dashSummary"></div>
+    <div class="dash-table-wrap">
+      <table class="dash-table" id="dashTable">
+        <thead><tr><th>Student</th><th>Tasks Completed</th><th>In Progress</th><th>Not Started</th><th>Details</th></tr></thead>
+        <tbody id="dashBody"></tbody>
+      </table>
+    </div>
+    <!-- Whitelist editor -->
+    <div class="whitelist-editor hidden" id="whitelistEditor">
+      <h3>Manage Whitelist</h3>
+      <label>Whitelisted Domains</label>
+      <input type="text" id="editDomains"/>
+      <label>Individual Emails</label>
+      <textarea id="editEmails" rows="5"></textarea>
+      <div class="wl-btns"><button class="btn-accent" id="saveWhitelist">Save</button><button class="btn-sm" id="cancelWhitelist">Cancel</button></div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════ -->
-<!--  VIEW 2 — DISCUSSION QUESTIONS              -->
-<!-- ═══════════════════════════════════════════ -->
-<section id="view-questions" class="view">
-  <div class="q-wrapper">
-    <div class="q-card" id="questionCard">
-      <div class="q-num" id="qNumber">&mdash;</div>
-      <div class="q-body" id="qText">Press <strong>Show Next Question</strong> to begin.</div>
+<!-- ═══════ QUESTIONS (both roles) ═══════ -->
+<section id="view-questions" class="view hidden">
+  <div class="q-center">
+    <div class="q-card" id="qCard">
+      <div class="q-num" id="qNum">?</div>
+      <div class="q-body" id="qBody">Press <strong>Show Question</strong> to display a discussion question.</div>
     </div>
-    <div class="q-answer hidden" id="answerCard"></div>
-    <div class="q-controls">
-      <button class="btn-orange" id="showQuestionBtn">Show Next Question</button>
-      <button class="btn-navy" id="revealAnswerBtn" disabled>Reveal Guidance</button>
-      <span class="q-counter" id="qCounter"></span>
+    <div class="q-answer hidden" id="qAnswer"></div>
+    <div class="q-btns">
+      <button class="btn-accent" id="showQBtn">Show Next Question</button>
+      <button class="btn-light" id="revealBtn" disabled>Reveal Guidance</button>
+      <span class="q-count" id="qCount"></span>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════ -->
-<!--  VIEW 3 — STUDENT TASKS                    -->
-<!-- ═══════════════════════════════════════════ -->
-<section id="view-tasks" class="view">
+<!-- ═══════ STUDENT TASKS ═══════ -->
+<section id="view-tasks" class="view hidden">
   <div class="tasks-shell">
-    <aside class="task-sidebar" id="taskSidebar"></aside>
+    <aside class="task-side" id="taskSide"></aside>
     <main class="task-main">
       <div class="task-nav">
-        <button class="btn-sm" id="prevTaskBtn" disabled>&larr; Previous</button>
-        <span class="task-counter" id="taskCounter">Task 1 / 24</span>
-        <button class="btn-sm" id="nextTaskBtn">Next &rarr;</button>
+        <button class="btn-sm" id="prevTask" disabled>← Prev</button>
+        <span class="task-pos" id="taskPos">1 / 24</span>
+        <button class="btn-sm" id="nextTask">Next →</button>
       </div>
-      <div class="task-card" id="taskCard"></div>
-      <div class="task-progress"><div class="task-progress-fill" id="taskProgressFill"></div></div>
+      <article class="task-card" id="taskCard"></article>
+      <!-- Code editor -->
+      <div class="editor-section" id="editorSection">
+        <div class="editor-head">
+          <span class="editor-title">Your Answer</span>
+          <select id="editorLang">
+            <option value="pseudo">CIE Pseudocode</option>
+            <option value="java">Java</option>
+          </select>
+        </div>
+        <div class="editor-wrap">
+          <div class="line-numbers" id="lineNumbers">1</div>
+          <textarea id="codeEditor" spellcheck="false" placeholder="Type your answer here..."></textarea>
+        </div>
+        <div class="editor-btns">
+          <button class="btn-accent" id="submitAnswer">Check My Answer</button>
+          <button class="btn-sm" id="clearEditor">Clear</button>
+          <span class="editor-status" id="editorStatus"></span>
+        </div>
+        <div class="feedback-box hidden" id="feedbackBox"></div>
+      </div>
+      <div class="task-bar"><div class="task-fill" id="taskFill"></div></div>
     </main>
   </div>
 </section>
+
+</div><!-- /appShell -->
 
 <script src="app.js"></script>
 </body>
