@@ -13,6 +13,8 @@ const LS = {
 // ═══ AUTH ═══
 let currentUser = null; // {email, role:'student'|'teacher'}
 
+// ── Session persistence — auto-login runs after all code loads (see bottom of file) ──
+
 function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; } return 'h' + Math.abs(h).toString(36); }
 
 // Login screen
@@ -91,6 +93,7 @@ document.getElementById('setupBtn').addEventListener('click', () => {
 });
 
 function enterApp() {
+  LS.set('session', { email: currentUser.email, role: currentUser.role });
   loginScreen.classList.add('hidden');
   setupScreen.classList.add('hidden');
   appShell.classList.remove('hidden');
@@ -157,6 +160,37 @@ function seedDemoStudents() {
     localStorage.setItem(key, JSON.stringify(s.prog));
   });
 
+  // Seed quiz data for demo students
+  const demoQuiz = {
+    'alice.chen@school.edu': {
+      0:{status:'correct',answer:'A procedure performs actions but does not return a value. A function returns a value. In Java a procedure is a void method.',attempts:1,time:Date.now()-50000000},
+      1:{status:'correct',answer:'A parameter is the placeholder variable in the definition. An argument is the actual value you pass when you call the function.',attempts:2,time:Date.now()-48000000},
+      2:{status:'correct',answer:'Parameters make code reusable and modular. You can pass different values each time and it is easier to test and debug.',attempts:1,time:Date.now()-46000000},
+      3:{status:'correct',answer:'Width holds 10 because arguments are matched by position. The second argument 10 goes to the second parameter Width.',attempts:1,time:Date.now()-44000000},
+      4:{status:'partial',answer:'BYVAL means a copy is passed.',attempts:2,time:Date.now()-40000000},
+      5:{status:'partial',answer:'BYREF means the original variable is changed. You use it for swapping.',attempts:1,time:Date.now()-38000000},
+    },
+    'bob.martinez@school.edu': {
+      0:{status:'correct',answer:'A procedure does not return anything. A function returns a value.',attempts:3,time:Date.now()-60000000},
+      1:{status:'partial',answer:'A parameter is in the definition and argument is what you pass.',attempts:2,time:Date.now()-55000000},
+      2:{status:'wrong',answer:'Because it is better.',attempts:1,time:Date.now()-50000000},
+    },
+    'fatima.khan@school.edu': {
+      0:{status:'correct',answer:'A procedure performs actions but does not return a value to the caller. A function computes something and returns a value. In Java, a procedure is a void method while a function has a return type like int or String.',attempts:1,time:Date.now()-70000000},
+      1:{status:'correct',answer:'A parameter is the placeholder variable defined in the function header — it acts as a label. An argument is the actual value passed when you call the function. Parameters are defined, arguments are supplied.',attempts:1,time:Date.now()-68000000},
+      2:{status:'correct',answer:'Using parameters makes code reusable and modular. The same procedure can work with different values each time it is called. It is also easier to test, debug and maintain because each module is independent.',attempts:1,time:Date.now()-66000000},
+      3:{status:'correct',answer:'Width holds the value 10 because arguments are matched to parameters by position. The first argument 5 goes to Length and the second argument 10 goes to Width.',attempts:1,time:Date.now()-64000000},
+      4:{status:'correct',answer:'BYVAL means by value — a copy of the argument is passed to the procedure. Any changes made to the parameter inside the procedure do not affect the original variable. You would use it when you only need to read the value without modifying it.',attempts:1,time:Date.now()-62000000},
+      5:{status:'correct',answer:'BYREF means by reference — the procedure receives a reference to the original variable, not a copy. Changes inside the procedure do affect the original variable. This is useful when you need the procedure to update or modify the callers data, for example a Swap procedure.',attempts:1,time:Date.now()-60000000},
+      6:{status:'correct',answer:'First the inner call Triple(2) evaluates to 6 because 2 times 3 is 6. Then the outer call Triple(6) evaluates to 18 because 6 times 3 is 18. So Result equals 18.',attempts:1,time:Date.now()-58000000},
+      7:{status:'correct',answer:'You get an error because the number of arguments must exactly match the number of parameters defined in the procedure or function header.',attempts:1,time:Date.now()-56000000},
+      8:{status:'partial',answer:'A local variable only exists inside the procedure. Parameters are like local variables.',attempts:2,time:Date.now()-54000000},
+    },
+  };
+  Object.entries(demoQuiz).forEach(([email, data]) => {
+    localStorage.setItem('fp_quiz_' + email, JSON.stringify(data));
+  });
+
   // Ensure demo emails are whitelisted
   const config = LS.get('config');
   if (config) {
@@ -172,8 +206,8 @@ function buildTabs() {
   const tabs = document.getElementById('mainTabs');
   tabs.innerHTML = '';
   const items = currentUser.role === 'teacher'
-    ? [['demo','Teacher Demo'],['dashboard','Dashboard'],['questions','Questions'],['tasks','View Tasks']]
-    : [['tasks','My Tasks'],['questions','Discussion']];
+    ? [['demo','Teacher Demo'],['dashboard','Dashboard'],['questions','Quiz (View)'],['tasks','Tasks (View)']]
+    : [['tasks','My Tasks'],['questions','Quiz']];
   items.forEach(([id, label]) => {
     const btn = document.createElement('button');
     btn.className = 'tab';
@@ -191,13 +225,14 @@ function switchView(id) {
   if (el) { el.classList.remove('hidden'); el.classList.add('active'); }
   if (id === 'dashboard') refreshDashboard();
   if (id === 'tasks') renderTask();
+  if (id === 'questions') renderQuiz();
 }
 
 function renderUserBadge() {
   const b = document.getElementById('userBadge');
   const initials = currentUser.email.substring(0, 2).toUpperCase();
   b.innerHTML = `<span class="ub-icon">${initials}</span><span>${currentUser.email}</span><button id="logoutBtn">Sign Out</button>`;
-  document.getElementById('logoutBtn').addEventListener('click', () => { currentUser = null; appShell.classList.add('hidden'); loginScreen.classList.remove('hidden'); document.getElementById('loginEmail').value = ''; document.getElementById('loginPass').value = ''; });
+  document.getElementById('logoutBtn').addEventListener('click', () => { LS.remove('session'); currentUser = null; appShell.classList.add('hidden'); loginScreen.classList.remove('hidden'); document.getElementById('loginEmail').value = ''; document.getElementById('loginPass').value = ''; });
 }
 
 
@@ -296,61 +331,299 @@ loadDemo(0);
 
 
 /* ══════════════════════════════════════════════
-   QUESTIONS
+   QUIZ — students type answers, get feedback
    ══════════════════════════════════════════════ */
-const questions=[
-  {q:'What is the difference between a <b>procedure</b> and a <b>function</b>?',a:'A <b>procedure</b> does not return a value. A <b>function</b> returns a value. In Java: <code>void</code> method vs a typed method.'},
-  {q:'What is a <b>parameter</b>? How is it different from an <b>argument</b>?',a:'A <b>parameter</b> is the placeholder in the definition. An <b>argument</b> is the actual value passed in the call.'},
-  {q:'Why use parameters instead of global variables?',a:'Parameters make code <b>reusable and modular</b>.'},
-  {q:'<code>CalculateArea(5, 10)</code> with <code>PROCEDURE CalculateArea(Length, Width)</code>. What does <code>Width</code> hold?',a:'<code>Width = 10</code>. Arguments match parameters <b>by position</b>.'},
-  {q:'What does <b>BYVAL</b> mean?',a:'A <b>copy</b> is passed. Changes inside do <b>not</b> affect the original.'},
-  {q:'What does <b>BYREF</b> mean?',a:'A <b>reference</b> is passed. Changes <b>do</b> affect the original.'},
-  {q:'What does <code>Triple(Triple(2))</code> evaluate to if Triple returns <code>N * 3</code>?',a:'Triple(2)=6, Triple(6)=18. <b>Result = 18</b>.'},
-  {q:'What happens if you pass the <b>wrong number</b> of arguments?',a:'You get an <b>error</b>. The count must match exactly.'},
-  {q:'What is a <b>local variable</b>?',a:'A variable that exists only inside the procedure. Parameters are local.'},
-  {q:'Why should parameter names be meaningful?',a:'<code>CalculateArea(Length, Width)</code> is self-documenting. <code>CalculateArea(A, B)</code> is not.'},
-  {q:'Can a function call another function?',a:'Yes! Return values can chain into other function calls.'},
-  {q:'What return type: <code>RETURN (N MOD 2 = 0)</code>?',a:'<b>BOOLEAN</b> — TRUE or FALSE.'},
+const quiz = [
+  { q:'Explain the difference between a <b>procedure</b> and a <b>function</b>.', keys:['procedure','function','return','value','void'], concepts:[{term:'procedure does not return',weight:2},{term:'function returns',weight:2},{term:'void',weight:1}], model:'A <b>procedure</b> performs actions but does <b>not return a value</b>. A <b>function</b> performs actions and <b>returns a value</b> that can be stored or used in an expression. In Java, a procedure is a <code>void</code> method.' },
+  { q:'What is a <b>parameter</b>? How is it different from an <b>argument</b>?', keys:['parameter','argument','definition','call','placeholder','value','passed'], concepts:[{term:'parameter.*definition',weight:2},{term:'argument.*call',weight:2},{term:'placeholder',weight:1}], model:'A <b>parameter</b> is the placeholder variable in the function/procedure <b>definition</b>. An <b>argument</b> is the actual value <b>passed in the call</b>. Parameters are defined; arguments are supplied.' },
+  { q:'Why is it better to use parameters instead of global variables inside a procedure?', keys:['reusable','modular','different','values','debug','test','maintain'], concepts:[{term:'reusab',weight:2},{term:'modular',weight:2},{term:'different values',weight:1},{term:'debug|test|maintain',weight:1}], model:'Parameters make code <b>reusable</b> and <b>modular</b>. The procedure can work with <b>different values</b> each time it is called, and is easier to test, debug, and maintain.' },
+  { q:'If <code>CalculateArea(5, 10)</code> calls <code>PROCEDURE CalculateArea(Length, Width)</code>, what value does <code>Width</code> hold and why?', keys:['10','width','position','second','first','order'], concepts:[{term:'10',weight:2},{term:'position',weight:2},{term:'second',weight:1}], model:'<code>Width = 10</code>. Arguments are matched to parameters <b>by position</b>: the first argument (5) goes to Length, the <b>second</b> argument (10) goes to Width.' },
+  { q:'Explain what <b>BYVAL</b> (by value) means when passing a parameter. Give an example of when you would use it.', keys:['copy','original','not','change','affect','safe','read'], concepts:[{term:'copy',weight:3},{term:'not.*change|not.*affect|original.*same',weight:2}], model:'<b>BYVAL</b> means a <b>copy</b> of the argument is passed. Changes inside the procedure do <b>not affect the original</b> variable. Use it when you only need to read a value without modifying it.' },
+  { q:'Explain what <b>BYREF</b> (by reference) means. When would you use it?', keys:['reference','original','change','affect','modify','swap','update'], concepts:[{term:'reference',weight:2},{term:'original.*change|change.*original|affect.*original',weight:3},{term:'swap|update',weight:1}], model:'<b>BYREF</b> means the procedure receives a <b>reference to the original variable</b>. Changes inside the procedure <b>do affect</b> the original. Useful when the procedure needs to modify the caller\'s variable, e.g. a <b>Swap</b> procedure.' },
+  { q:'What does <code>Result ← Triple(Triple(2))</code> evaluate to, if the function <code>Triple</code> returns <code>N * 3</code>? Explain your working.', keys:['6','18','triple','inner','outer','first'], concepts:[{term:'6',weight:2},{term:'18',weight:3},{term:'inner|first|Triple\\(2\\)',weight:1}], model:'First, the inner call: <code>Triple(2) = 6</code>. Then the outer call: <code>Triple(6) = 18</code>. So <b>Result = 18</b>. A function\'s return value can be used as an argument to another call.' },
+  { q:'What happens if you call a procedure with the <b>wrong number of arguments</b>? Why?', keys:['error','match','number','count','parameter','expect'], concepts:[{term:'error',weight:3},{term:'match|must match',weight:2},{term:'number.*parameter|count',weight:1}], model:'You get an <b>error</b>. The number of arguments in the call <b>must exactly match</b> the number of parameters in the definition.' },
+  { q:'What is a <b>local variable</b>? How does it relate to parameters?', keys:['local','inside','procedure','function','created','destroyed','parameter','exist'], concepts:[{term:'inside.*procedure|inside.*function|only.*inside',weight:2},{term:'created.*call|destroyed.*end|exist.*inside',weight:2},{term:'parameter.*local',weight:1}], model:'A <b>local variable</b> exists only <b>inside</b> the procedure/function. Parameters behave like local variables — they are <b>created when called</b> and <b>destroyed when it ends</b>, so they don\'t clash with variables of the same name elsewhere.' },
+  { q:'Why is it considered good practice to use <b>meaningful parameter names</b>? Give an example.', keys:['self','document','clear','understand','readable','length','width','meaningful'], concepts:[{term:'self.document|readab|clear|understand',weight:2},{term:'Length|Width|example',weight:2}], model:'Meaningful names make code <b>self-documenting</b>. <code>CalculateArea(Length, Width)</code> is immediately clear, while <code>CalculateArea(A, B)</code> requires the reader to guess what A and B represent.' },
+  { q:'Can a function call another function? Write a short pseudocode example to support your answer.', keys:['yes','function','call','return','another','inside'], concepts:[{term:'yes',weight:1},{term:'FUNCTION|RETURN',weight:2},{term:'call.*another|function.*call.*function',weight:2}], model:'<b>Yes.</b> For example: <code>FUNCTION FinalBill(Price, Qty) RETURNS REAL</code> could contain <code>RETURN AddTax(Price * Qty)</code> — calling <code>AddTax</code> from inside <code>FinalBill</code>.' },
+  { q:'What is the return type of this function and why?<pre>FUNCTION IsEven(N : INTEGER) RETURNS ???\n    RETURN (N MOD 2 = 0)\nENDFUNCTION</pre>', keys:['boolean','true','false','mod','condition','expression'], concepts:[{term:'BOOLEAN',weight:3},{term:'TRUE|FALSE',weight:2},{term:'condition|expression|MOD',weight:1}], model:'The return type is <b>BOOLEAN</b>. The expression <code>N MOD 2 = 0</code> evaluates to either <b>TRUE</b> or <b>FALSE</b>.' },
 ];
-let shuffled=[],qIdx=-1;
-function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
-document.getElementById('showQBtn').addEventListener('click',()=>{if(!shuffled.length||qIdx>=shuffled.length-1){shuffled=shuffle(questions);qIdx=-1;}qIdx++;document.getElementById('qNum').textContent=qIdx+1;document.getElementById('qBody').innerHTML=shuffled[qIdx].q;document.getElementById('qAnswer').classList.add('hidden');document.getElementById('revealBtn').disabled=false;document.getElementById('qCount').textContent=(qIdx+1)+'/'+shuffled.length;});
-document.getElementById('revealBtn').addEventListener('click',()=>{document.getElementById('qAnswer').innerHTML='<strong>Guidance:</strong> '+shuffled[qIdx].a;document.getElementById('qAnswer').classList.remove('hidden');document.getElementById('revealBtn').disabled=true;});
+
+let curQ = 0;
+
+function getQuizData() { return LS.get('quiz_' + currentUser?.email) || {}; }
+function saveQuizData(qIdx, data) {
+  if (!currentUser) return;
+  const all = getQuizData();
+  all[qIdx] = data;
+  LS.set('quiz_' + currentUser.email, all);
+}
+
+function renderQuizNav() {
+  const nav = document.getElementById('quizNav');
+  nav.innerHTML = '';
+  const data = getQuizData();
+  let totalCorrect = 0, totalAttempts = 0;
+  quiz.forEach((q, i) => {
+    const d = data[i];
+    const btn = document.createElement('button');
+    btn.className = 'quiz-side-btn' + (i === curQ ? ' active' : '');
+    let icon = '';
+    if (d) {
+      totalAttempts += d.attempts || 0;
+      if (d.status === 'correct') { icon = ' ✓'; totalCorrect++; }
+      else if (d.status === 'partial') icon = ' ●';
+      else icon = ' ○';
+    }
+    btn.innerHTML = `<span style="opacity:.5">${i + 1}.</span> Q${i + 1}<span class="qs-icon">${icon}</span>`;
+    btn.addEventListener('click', () => { curQ = i; renderQuiz(); });
+    nav.appendChild(btn);
+  });
+  document.getElementById('quizScoreNum').textContent = totalCorrect + ' / ' + quiz.length;
+  document.getElementById('quizAttempts').textContent = 'Total attempts: ' + totalAttempts;
+}
+
+function renderQuiz() {
+  const q = quiz[curQ];
+  const data = getQuizData();
+  const saved = data[curQ];
+
+  document.getElementById('quizQNum').textContent = curQ + 1;
+  document.getElementById('quizQBody').innerHTML = q.q;
+  document.getElementById('quizPos').textContent = (curQ + 1) + ' / ' + quiz.length;
+  document.getElementById('quizPrev').disabled = curQ === 0;
+  document.getElementById('quizNext').disabled = curQ === quiz.length - 1;
+
+  const input = document.getElementById('quizInput');
+  input.value = saved?.answer || '';
+  document.getElementById('quizAttemptInfo').textContent = saved?.attempts ? 'Attempts: ' + saved.attempts : '';
+
+  const fb = document.getElementById('quizFeedback');
+  if (saved?.feedback) {
+    fb.innerHTML = saved.feedback;
+    fb.className = 'quiz-feedback ' + (saved.status === 'correct' ? 'qf-correct' : saved.status === 'partial' ? 'qf-partial' : 'qf-wrong');
+    fb.classList.remove('hidden');
+  } else {
+    fb.classList.add('hidden');
+    fb.className = 'quiz-feedback hidden';
+  }
+  renderQuizNav();
+}
+
+function analyseQuizAnswer(qIdx, answer) {
+  const q = quiz[qIdx];
+  const lower = answer.toLowerCase();
+
+  // Keyword check
+  const foundKeys = q.keys.filter(k => lower.includes(k.toLowerCase()));
+  const missedKeys = q.keys.filter(k => !lower.includes(k.toLowerCase()));
+
+  // Concept check (regex-based, weighted)
+  let conceptScore = 0, conceptMax = 0;
+  const conceptResults = [];
+  q.concepts.forEach(c => {
+    conceptMax += c.weight;
+    const rx = new RegExp(c.term, 'i');
+    if (rx.test(answer)) {
+      conceptScore += c.weight;
+      conceptResults.push({ text: c.term.replace(/\|/g, ' / ').replace(/\\\(/g, '(').replace(/\\\)/g, ')'), hit: true });
+    } else {
+      conceptResults.push({ text: c.term.replace(/\|/g, ' / ').replace(/\\\(/g, '(').replace(/\\\)/g, ')'), hit: false });
+    }
+  });
+
+  const pct = conceptMax > 0 ? conceptScore / conceptMax : 0;
+  const tooShort = answer.trim().split(/\s+/).length < 5;
+
+  let status, cls, heading;
+  if (pct >= 0.7 && !tooShort) {
+    status = 'correct'; cls = 'qf-correct'; heading = '✓ Excellent answer!';
+  } else if (pct >= 0.35 || foundKeys.length >= Math.ceil(q.keys.length * 0.5)) {
+    status = 'partial'; cls = 'qf-partial'; heading = '● Good start — but some key points are missing.';
+  } else {
+    status = 'wrong'; cls = 'qf-wrong'; heading = '✕ Your answer needs more detail. Read the guidance below and try again.';
+  }
+
+  // Build feedback HTML
+  let html = `<strong>${heading}</strong>`;
+
+  // Checklist
+  html += '<ul class="quiz-fb-list">';
+  conceptResults.forEach(c => {
+    html += `<li class="${c.hit ? 'qfb-yes' : 'qfb-no'}">${c.hit ? 'Mentioned' : 'Missing'}: ${c.text}</li>`;
+  });
+  html += '</ul>';
+
+  if (tooShort) html += '<p style="margin-top:.4rem;color:var(--burg);font-weight:600">Your answer is very short. Try to write in full sentences.</p>';
+
+  // Always show model answer
+  html += `<div class="qf-model"><b>Model answer:</b> ${q.model}</div>`;
+
+  return { status, cls, html };
+}
+
+document.getElementById('quizSubmit').addEventListener('click', () => {
+  const answer = document.getElementById('quizInput').value.trim();
+  if (!answer) { document.getElementById('quizFeedback').innerHTML = '<strong>Please type your answer first.</strong>'; document.getElementById('quizFeedback').className = 'quiz-feedback qf-wrong'; document.getElementById('quizFeedback').classList.remove('hidden'); return; }
+
+  const result = analyseQuizAnswer(curQ, answer);
+  const data = getQuizData();
+  const prev = data[curQ] || { attempts: 0 };
+
+  const saved = {
+    answer,
+    status: result.status,
+    feedback: result.html,
+    attempts: (prev.attempts || 0) + 1,
+    time: Date.now()
+  };
+  // Don't downgrade from correct
+  if (prev.status === 'correct') saved.status = 'correct';
+  saveQuizData(curQ, saved);
+
+  const fb = document.getElementById('quizFeedback');
+  fb.innerHTML = result.html;
+  fb.className = 'quiz-feedback ' + result.cls;
+  fb.classList.remove('hidden');
+  document.getElementById('quizAttemptInfo').textContent = 'Attempts: ' + saved.attempts;
+  renderQuizNav();
+});
+
+document.getElementById('quizPrev').addEventListener('click', () => { if (curQ > 0) { curQ--; renderQuiz(); } });
+document.getElementById('quizNext').addEventListener('click', () => { if (curQ < quiz.length - 1) { curQ++; renderQuiz(); } });
+renderQuiz();
+
 
 
 /* ══════════════════════════════════════════════
    STUDENT TASKS + CODE EDITOR
+   Dual-language feedback: pseudoKeys vs javaKeys
    ══════════════════════════════════════════════ */
 const tasks=[
-{t:'Identify the Parts',d:'easy',keys:['Greet','Name','Anika','STRING'],b:`Look at this code:\n<pre>PROCEDURE Greet(Name : STRING)\n    OUTPUT "Hello, " &amp; Name\nENDPROCEDURE\n\nCALL Greet("Anika")</pre>\nWrite down: <b>(a)</b> the procedure name, <b>(b)</b> the parameter, <b>(c)</b> the argument, <b>(d)</b> the data type.\n<div class="task-hint">💡 The parameter is in the definition brackets. The argument is in the call brackets.</div>`},
-{t:'Predict the Output',d:'easy',keys:['14','ShowDouble','OUTPUT'],b:`What does this output?\n<pre>PROCEDURE ShowDouble(X : INTEGER)\n    OUTPUT X * 2\nENDPROCEDURE\n\nCALL ShowDouble(7)</pre>\nRewrite in <b>Java</b>.\n<div class="task-hint">💡 Replace X with 7, then calculate.</div>`},
-{t:'Fill in the Blanks',d:'easy',keys:['Count','5','PrintStars'],b:`Complete the gaps so the procedure prints 5 stars:\n<pre>PROCEDURE PrintStars(______ : INTEGER)\n    FOR I ← 1 TO Count\n        OUTPUT "*"\n    NEXT I\nENDPROCEDURE\n\nCALL PrintStars(______)</pre>\n<div class="task-hint">💡 The parameter name must match what's used in the loop.</div>`},
-{t:'Spot the Error',d:'easy',keys:['INTEGER','type','mismatch','15','number'],b:`Find and fix the error:\n<pre>PROCEDURE SayAge(Age : INTEGER)\n    OUTPUT "You are " &amp; Age &amp; " years old"\nENDPROCEDURE\n\nCALL SayAge("fifteen")</pre>\n<div class="task-hint">💡 Compare the parameter's data type with the argument.</div>`},
-{t:'Write a Call',d:'easy',keys:['DisplayMessage','Well done','3','CALL'],b:`Given:\n<pre>PROCEDURE DisplayMessage(Msg : STRING, Times : INTEGER)\n    FOR I ← 1 TO Times\n        OUTPUT Msg\n    NEXT I\nENDPROCEDURE</pre>\nWrite a call that displays <code>"Well done!"</code> three times. Then rewrite in <b>Java</b>.\n<div class="task-hint">💡 Match argument types and positions to the parameters.</div>`},
-{t:'Procedure vs Function',d:'easy',keys:['PROCEDURE','FUNCTION','RETURN','void'],b:`<b>(a)</b> Explain the difference between a procedure and a function.<br><b>(b)</b> Write a simple procedure in CIE pseudocode and Java.<br><b>(c)</b> Write a simple function in CIE pseudocode and Java.\n<div class="task-hint">💡 A function uses RETURN and declares a return type.</div>`},
-{t:'Write a Procedure',d:'medium',keys:['PROCEDURE','PrintBorder','Length','FOR','ENDPROCEDURE','OUTPUT'],b:`Write <code>PrintBorder(Length : INTEGER)</code> that outputs <code>Length</code> dashes. Write two calls (10 and 25). CIE and Java.\n<div class="task-hint">💡 Use a FOR loop from 1 to Length.</div>`},
-{t:'Write a Function',d:'medium',keys:['FUNCTION','AddVAT','Price','RETURN','1.15','230','ENDFUNCTION'],b:`Write <code>AddVAT(Price : REAL) RETURNS REAL</code> adding 15% VAT. What does <code>Total ← AddVAT(200.00)</code> give? CIE and Java.\n<div class="task-hint">💡 RETURN Price * 1.15</div>`},
-{t:'Two-Parameter Function',d:'medium',keys:['FUNCTION','Power','Base','Exponent','RETURN','ENDFUNCTION','Result'],b:`Write <code>Power(Base, Exponent) RETURNS INTEGER</code> using a loop. Show step by step what <code>Power(3, 4)</code> returns. CIE and Java.\n<div class="task-hint">💡 Start Result at 1, multiply by Base each iteration.</div>`},
-{t:'Function Calling a Procedure',d:'medium',keys:['FUNCTION','PROCEDURE','CALL','RETURN','ENDFUNCTION','ENDPROCEDURE','OUTPUT'],b:`Write a program with two modules:\n<ol><li>A <b>function</b> <code>CalculateTotal(Price : REAL, Qty : INTEGER) RETURNS REAL</code> that returns <code>Price * Qty</code></li>\n<li>A <b>procedure</b> <code>PrintReceipt(Item : STRING, Price : REAL, Qty : INTEGER)</code> that calls <code>CalculateTotal</code> and outputs the item name and total cost</li></ol>\nWrite a main program that calls <code>PrintReceipt("Notebook", 3.50, 4)</code>. What is the output?<br>Write in both CIE pseudocode and Java.\n<div class="task-hint">💡 The procedure calls the function to get the total, then uses OUTPUT to display it.</div>`},
-{t:'Argument Order',d:'medium',keys:['6','-6','position','first','second','ENDPROCEDURE'],b:`<pre>PROCEDURE Subtract(A : INTEGER, B : INTEGER)\n    OUTPUT A - B\nENDPROCEDURE\n\nCALL Subtract(10, 4)\nCALL Subtract(4, 10)</pre>\n<b>(a)</b> Output of each call? <b>(b)</b> Why does order matter?\n<div class="task-hint">💡 A gets the first value, B the second.</div>`},
-{t:'Local vs Global',d:'medium',keys:['60','100','local','copy','ENDPROCEDURE'],b:`Predict all outputs:\n<pre>X ← 100\n\nPROCEDURE ChangeX(X : INTEGER)\n    X ← X + 50\n    OUTPUT X\nENDPROCEDURE\n\nCALL ChangeX(10)\nOUTPUT X</pre>\n<div class="task-hint">💡 The parameter X is a local copy, not the global X.</div>`},
-{t:'Two Functions Together',d:'medium',keys:['FUNCTION','RETURN','ENDFUNCTION','CALL','CelsiusToFahrenheit','FahrenheitToCelsius'],b:`Write two functions that work together:\n<ol><li><code>CelsiusToFahrenheit(C : REAL) RETURNS REAL</code> — returns <code>C * 9/5 + 32</code></li>\n<li><code>FahrenheitToCelsius(F : REAL) RETURNS REAL</code> — returns <code>(F - 32) * 5/9</code></li></ol>\nWrite a main program that:\n<ol><li>Converts 100°C to Fahrenheit and outputs the result</li>\n<li>Converts 32°F to Celsius and outputs the result</li></ol>\nWrite in CIE pseudocode and Java.\n<div class="task-hint">💡 Each function takes one parameter and returns the converted temperature.</div>`},
-{t:'Modular Discount System',d:'medium',keys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','CALL','ApplyDiscount','CalculateVAT','ShowFinalPrice'],b:`Build a modular pricing system with three modules:\n<ol><li><code>ApplyDiscount(Price : REAL, Percent : INTEGER) RETURNS REAL</code> — returns the price after removing the discount percentage</li>\n<li><code>CalculateVAT(Price : REAL) RETURNS REAL</code> — returns the price with 20% VAT added</li>\n<li><code>ShowFinalPrice(Original : REAL, Discount : INTEGER)</code> — a <b>procedure</b> that calls both functions above (discount first, then VAT) and outputs the original price, discounted price, and final price with VAT</li></ol>\nWrite a main program that calls <code>ShowFinalPrice(50.00, 10)</code>. What are the three values output?<br>Write in CIE pseudocode and Java.\n<div class="task-hint">💡 The procedure orchestrates the two functions: first apply the discount, then add VAT to the discounted price.</div>`},
-{t:'Multi-Function Program',d:'hard',keys:['GetArea','GetPerimeter','FUNCTION','RETURN','ENDFUNCTION','Length','Width','CALL'],b:`Write in CIE and Java:\n<ol><li><code>GetArea(Length, Width)</code> → returns area</li>\n<li><code>GetPerimeter(Length, Width)</code> → returns perimeter</li>\n<li><code>DescribeRectangle(Length, Width)</code> — calls both, outputs results</li></ol>\nWrite a main program that reads inputs and calls DescribeRectangle.`},
-{t:'Validation Function',d:'hard',keys:['ValidateAge','FUNCTION','BOOLEAN','RETURN','WHILE','ENDFUNCTION'],b:`Write <code>ValidateAge(Age) RETURNS BOOLEAN</code> (TRUE if 0–150). Write <code>GetValidAge()</code> that loops until valid. CIE and Java.`},
-{t:'Swap (BYREF)',d:'hard',keys:['Swap','BYREF','Temp','ENDPROCEDURE'],b:`Write <code>Swap(BYREF A, BYREF B)</code> using a temp variable. Show what happens step by step when X=5, Y=9. Why is BYREF essential? In Java, swap two array elements.`},
-{t:'Recursive Function',d:'hard',keys:['Factorial','FUNCTION','RETURN','base case','ENDFUNCTION','120'],b:`<pre>FUNCTION Factorial(N : INTEGER) RETURNS INTEGER\n    IF N &lt;= 1 THEN\n        RETURN 1\n    ELSE\n        RETURN N * Factorial(N - 1)\n    ENDIF\nENDFUNCTION</pre>\n<b>(a)</b> Work through Factorial(5) showing each call and return value. <b>(b)</b> Base case? <b>(c)</b> Without one? <b>(d)</b> Java version.`},
-{t:'String Processing',d:'hard',keys:['CountChar','FUNCTION','RETURN','ENDFUNCTION','FOR','LENGTH'],b:`Write <code>CountChar(Text, Target) RETURNS INTEGER</code>. Show step by step what <code>CountChar("banana", "a")</code> returns. Count vowels using it 5 times. CIE and Java.`},
-{t:'Array Parameter',d:'hard',keys:['FindMax','FindMin','FUNCTION','RETURN','ENDFUNCTION','ARRAY'],b:`Write <code>FindMax</code> and <code>FindMin</code>. Write <code>DisplayStats</code> showing max, min, range. CIE and Java.`},
-{t:'Bubble Sort',d:'challenge',keys:['BubbleSort','BYREF','Swap','PROCEDURE','ENDPROCEDURE','FOR'],b:`Write <code>BubbleSort(BYREF Arr(), Size)</code> in CIE and Java.\n<ol><li>Why BYREF?</li><li>Use a separate Swap procedure.</li><li>Show the array after each pass when sorting [4, 2, 7, 1, 3].</li></ol>`},
-{t:'Password Checker',d:'challenge',keys:['HasMinLength','HasUpperCase','HasDigit','CheckPassword','FUNCTION','BOOLEAN','RETURN','ENDFUNCTION'],b:`Build a modular password system:\n<ol><li><code>HasMinLength → BOOLEAN</code></li>\n<li><code>HasUpperCase → BOOLEAN</code></li>\n<li><code>HasDigit → BOOLEAN</code></li>\n<li><code>CheckPassword → STRING</code> ("Strong"/"Medium"/"Weak")</li></ol>\nFull CIE and Java. Work through <code>CheckPassword("Hello1")</code> showing what each function returns.`},
-{t:'Menu Calculator',d:'challenge',keys:['FUNCTION','PROCEDURE','GetChoice','GetNumber','RETURN','ENDFUNCTION','WHILE','DIV'],b:`Calculator with separate functions, plus <code>GetChoice()</code> and <code>GetNumber(Prompt)</code>. Main loop with validation. Divide handles zero. CIE and Java.`},
-{t:'Exam-Style Question',d:'challenge',keys:['CalculateMean','CountAbove','PrintReport','FUNCTION','RETURN','ENDFUNCTION','CALL','modular'],b:`<b>[12 marks]</b> Student marks in an array:\n<ol><li><code>CalculateMean(Marks(), Count) RETURNS REAL</code> [3]</li>\n<li><code>CountAbove(Marks(), Count, Threshold) RETURNS INTEGER</code> [3]</li>\n<li><code>PrintReport(Marks(), Count)</code> — outputs mean, count above mean, count above 75 [4]</li></ol>\nExplain why separate functions are better. [2] CIE then Java.`},
+{t:'Identify the Parts',d:'easy',
+  pseudoKeys:['Greet','Name','Anika','STRING'],
+  javaKeys:['greet','name','Anika','String'],
+  b:`Look at this code:\n<pre>PROCEDURE Greet(Name : STRING)\n    OUTPUT "Hello, " &amp; Name\nENDPROCEDURE\n\nCALL Greet("Anika")</pre>\nWrite down: <b>(a)</b> the procedure name, <b>(b)</b> the parameter, <b>(c)</b> the argument, <b>(d)</b> the data type.\n<div class="task-hint">💡 The parameter is in the definition brackets. The argument is in the call brackets.</div>`},
+
+{t:'Predict the Output',d:'easy',
+  pseudoKeys:['14','ShowDouble','OUTPUT','CALL'],
+  javaKeys:['14','showDouble','System.out.println','void'],
+  b:`What does this output?\n<pre>PROCEDURE ShowDouble(X : INTEGER)\n    OUTPUT X * 2\nENDPROCEDURE\n\nCALL ShowDouble(7)</pre>\nRewrite in <b>Java</b> using correct naming conventions.\n<div class="task-hint">💡 The output is 14. In Java, use camelCase: <code>showDouble</code>.</div>`},
+
+{t:'Fill in the Blanks',d:'easy',
+  pseudoKeys:['Count','5','PrintStars','ENDPROCEDURE'],
+  javaKeys:['count','5','printStars','}'],
+  b:`Complete the gaps so the procedure prints 5 stars:\n<pre>PROCEDURE PrintStars(______ : INTEGER)\n    FOR I ← 1 TO Count\n        OUTPUT "*"\n    NEXT I\nENDPROCEDURE\n\nCALL PrintStars(______)</pre>\n<div class="task-hint">💡 The parameter name must match what's used in the loop.</div>`},
+
+{t:'Spot the Error',d:'easy',
+  pseudoKeys:['INTEGER','type','mismatch','15','number'],
+  javaKeys:['int','type','mismatch','15','number'],
+  b:`Find and fix the error:\n<pre>PROCEDURE SayAge(Age : INTEGER)\n    OUTPUT "You are " &amp; Age &amp; " years old"\nENDPROCEDURE\n\nCALL SayAge("fifteen")</pre>\n<div class="task-hint">💡 Compare the parameter's data type with the argument.</div>`},
+
+{t:'Write a Call',d:'easy',
+  pseudoKeys:['DisplayMessage','Well done','3','CALL'],
+  javaKeys:['displayMessage','Well done','3'],
+  b:`Given:\n<pre>PROCEDURE DisplayMessage(Msg : STRING, Times : INTEGER)\n    DECLARE I : INTEGER\n    FOR I ← 1 TO Times\n        OUTPUT Msg\n    NEXT I\nENDPROCEDURE</pre>\nWrite a call that displays <code>"Well done!"</code> three times. Then rewrite in <b>Java</b>.\n<div class="task-hint">💡 In Java, use camelCase: <code>displayMessage("Well done!", 3);</code></div>`},
+
+{t:'Procedure vs Function',d:'easy',
+  pseudoKeys:['PROCEDURE','FUNCTION','RETURN','ENDPROCEDURE','ENDFUNCTION'],
+  javaKeys:['void','return','int','static'],
+  b:`<b>(a)</b> Explain the difference between a procedure and a function.<br><b>(b)</b> Write a simple procedure in CIE pseudocode and Java.<br><b>(c)</b> Write a simple function in CIE pseudocode and Java.\n<div class="task-hint">💡 In pseudocode: PROCEDURE/ENDPROCEDURE, FUNCTION/ENDFUNCTION with RETURN. In Java: <code>void</code> = procedure, typed return = function. Use camelCase for method names.</div>`},
+
+{t:'Write a Procedure',d:'medium',
+  pseudoKeys:['PROCEDURE','PrintBorder','Length','DECLARE','FOR','ENDPROCEDURE','OUTPUT','CALL'],
+  javaKeys:['void','printBorder','length','for','System.out'],
+  b:`Write a procedure <code>PrintBorder(Length : INTEGER)</code> that outputs a line of <code>Length</code> dashes. Declare any local variables used. Write two calls (length 10 and 25).\n\nWrite in CIE pseudocode <b>or</b> Java (select language above).\n<div class="task-hint">💡 Pseudocode: Use <code>DECLARE I : INTEGER</code> for the loop counter.<br>Java: <code>public static void printBorder(int length)</code></div>`},
+
+{t:'Write a Function',d:'medium',
+  pseudoKeys:['FUNCTION','AddVAT','Price','RETURN','1.15','230','ENDFUNCTION'],
+  javaKeys:['double','addVAT','price','return','1.15','230'],
+  b:`Write <code>AddVAT(Price : REAL) RETURNS REAL</code> that adds 15% VAT.<br>What does <code>Total ← AddVAT(200.00)</code> give?\n\nWrite in CIE pseudocode <b>or</b> Java (select language above).\n<div class="task-hint">💡 Pseudocode: <code>RETURN Price * 1.15</code><br>Java: <code>public static double addVAT(double price)</code></div>`},
+
+{t:'Two-Parameter Function',d:'medium',
+  pseudoKeys:['FUNCTION','Power','Base','Exponent','RETURN','ENDFUNCTION','DECLARE','Result'],
+  javaKeys:['int','power','base','exponent','return','result'],
+  b:`Write <code>Power(Base : INTEGER, Exponent : INTEGER) RETURNS INTEGER</code> using a loop. Declare all local variables. Show what <code>Power(3, 4)</code> returns.\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Result : INTEGER</code> and <code>DECLARE I : INTEGER</code><br>Java: <code>public static int power(int base, int exponent)</code></div>`},
+
+{t:'Function Calling a Procedure',d:'medium',
+  pseudoKeys:['FUNCTION','PROCEDURE','CALL','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','CalculateTotal','PrintReceipt'],
+  javaKeys:['double','void','return','calculateTotal','printReceipt','println'],
+  b:`Write a program with two modules:\n<ol><li>A <b>function</b> <code>CalculateTotal(Price : REAL, Qty : INTEGER) RETURNS REAL</code> that returns <code>Price * Qty</code></li>\n<li>A <b>procedure</b> <code>PrintReceipt(Item : STRING, Price : REAL, Qty : INTEGER)</code> that declares a local variable <code>Total</code>, calls <code>CalculateTotal</code>, and outputs the item name and total cost</li></ol>\nCall <code>PrintReceipt("Notebook", 3.50, 4)</code>. What is the output?\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Total : REAL</code> inside the procedure.<br>Java: <code>double total = calculateTotal(price, qty);</code></div>`},
+
+{t:'Argument Order',d:'medium',
+  pseudoKeys:['6','-6','position','first','second','ENDPROCEDURE'],
+  javaKeys:['6','-6','position','first','second'],
+  b:`<pre>PROCEDURE Subtract(A : INTEGER, B : INTEGER)\n    OUTPUT A - B\nENDPROCEDURE\n\nCALL Subtract(10, 4)\nCALL Subtract(4, 10)</pre>\n<b>(a)</b> Output of each call? <b>(b)</b> Why does order matter?\n<div class="task-hint">💡 A gets the first value, B the second.</div>`},
+
+{t:'Local vs Global',d:'medium',
+  pseudoKeys:['60','100','local','copy','ENDPROCEDURE'],
+  javaKeys:['60','100','local','copy'],
+  b:`Predict all outputs:\n<pre>X ← 100\n\nPROCEDURE ChangeX(X : INTEGER)\n    X ← X + 50\n    OUTPUT X\nENDPROCEDURE\n\nCALL ChangeX(10)\nOUTPUT X</pre>\n<div class="task-hint">💡 The parameter X is a local copy, not the global X.</div>`},
+
+{t:'Two Functions Together',d:'medium',
+  pseudoKeys:['FUNCTION','RETURN','ENDFUNCTION','CelsiusToFahrenheit','FahrenheitToCelsius','DECLARE'],
+  javaKeys:['double','return','celsiusToFahrenheit','fahrenheitToCelsius'],
+  b:`Write two functions:\n<ol><li><code>CelsiusToFahrenheit(C : REAL) RETURNS REAL</code> — returns <code>C * 9/5 + 32</code></li>\n<li><code>FahrenheitToCelsius(F : REAL) RETURNS REAL</code> — returns <code>(F - 32) * 5/9</code></li></ol>\nWrite a main program that declares variables, converts 100°C to Fahrenheit and 32°F to Celsius, and outputs both results.\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Result : REAL</code> in main.<br>Java: <code>double result = celsiusToFahrenheit(100);</code></div>`},
+
+{t:'Modular Discount System',d:'medium',
+  pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','CALL','DECLARE','ApplyDiscount','CalculateVAT','ShowFinalPrice'],
+  javaKeys:['double','void','return','applyDiscount','calculateVAT','showFinalPrice'],
+  b:`Build a modular pricing system with three modules:\n<ol><li><code>ApplyDiscount(Price : REAL, Percent : INTEGER) RETURNS REAL</code></li>\n<li><code>CalculateVAT(Price : REAL) RETURNS REAL</code> — adds 20% VAT</li>\n<li><code>ShowFinalPrice(Original : REAL, Discount : INTEGER)</code> — a <b>procedure</b> that declares local variables, calls both functions (discount first, then VAT), and outputs the original price, discounted price, and final price</li></ol>\nCall <code>ShowFinalPrice(50.00, 10)</code>. What are the three values output?\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Discounted : REAL</code> and <code>DECLARE Final : REAL</code> inside the procedure.<br>Java: <code>double discounted = applyDiscount(original, discount);</code></div>`},
+
+{t:'Multi-Function Program',d:'hard',
+  pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','CALL','GetArea','GetPerimeter','DescribeRectangle'],
+  javaKeys:['double','void','return','getArea','getPerimeter','describeRectangle'],
+  b:`Write in CIE pseudocode <b>or</b> Java:\n<ol><li><code>GetArea(Length : REAL, Width : REAL) RETURNS REAL</code></li>\n<li><code>GetPerimeter(Length : REAL, Width : REAL) RETURNS REAL</code></li>\n<li><code>DescribeRectangle(Length : REAL, Width : REAL)</code> — a procedure that declares local variables for area and perimeter, calls both functions, and outputs the results</li></ol>\nWrite a main program that declares Length and Width, reads input, and calls DescribeRectangle.`},
+
+{t:'Validation Function',d:'hard',
+  pseudoKeys:['FUNCTION','PROCEDURE','BOOLEAN','RETURN','WHILE','ENDFUNCTION','ENDPROCEDURE','DECLARE','ValidateAge','GetValidAge'],
+  javaKeys:['boolean','return','while','validateAge','getValidAge','Scanner'],
+  b:`Write two modules:\n<ol><li><code>ValidateAge(Age : INTEGER) RETURNS BOOLEAN</code> — returns TRUE if Age is between 0 and 150 inclusive</li>\n<li><code>GetValidAge()</code> — a procedure that declares a local variable <code>Age</code>, loops using a WHILE loop until <code>ValidateAge</code> returns TRUE, then outputs the valid age</li></ol>\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Age : INTEGER</code> inside GetValidAge.<br>Java: <code>public static boolean validateAge(int age)</code></div>`},
+
+{t:'Swap (BYREF)',d:'hard',
+  pseudoKeys:['PROCEDURE','BYREF','DECLARE','Temp','ENDPROCEDURE','Swap'],
+  javaKeys:['void','swap','temp','int[]'],
+  b:`Write <code>Swap(BYREF A : INTEGER, BYREF B : INTEGER)</code> that uses a declared local variable <code>Temp</code> to swap the values. Show what happens step by step when X=5, Y=9. Why is BYREF essential?\n\nIn Java, show how to swap two elements in an array (since Java primitives are always by value).\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Temp : INTEGER</code> inside Swap.</div>`},
+
+{t:'Recursive Function',d:'hard',
+  pseudoKeys:['FUNCTION','RETURN','ENDFUNCTION','Factorial','IF','ELSE','ENDIF','base case'],
+  javaKeys:['int','return','factorial','if','else','base case'],
+  b:`<pre>FUNCTION Factorial(N : INTEGER) RETURNS INTEGER\n    IF N &lt;= 1 THEN\n        RETURN 1\n    ELSE\n        RETURN N * Factorial(N - 1)\n    ENDIF\nENDFUNCTION</pre>\n<b>(a)</b> Work through Factorial(5) showing each call and return value.<br><b>(b)</b> What is the base case?<br><b>(c)</b> What would happen without one?<br><b>(d)</b> Rewrite in Java.\n<div class="task-hint">💡 Java: <code>public static int factorial(int n)</code></div>`},
+
+{t:'String Processing',d:'hard',
+  pseudoKeys:['FUNCTION','RETURN','ENDFUNCTION','DECLARE','CountChar','FOR','LENGTH','Count'],
+  javaKeys:['int','return','countChar','for','length','charAt','count'],
+  b:`Write <code>CountChar(Text : STRING, Target : CHAR) RETURNS INTEGER</code>. Declare a local counter variable. Show what <code>CountChar("banana", "a")</code> returns.\n\nThen write a main program that declares a sentence variable and counts all vowels by calling <code>CountChar</code> five times (once for each vowel).\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Count : INTEGER</code> inside the function.<br>Java: <code>public static int countChar(String text, char target)</code></div>`},
+
+{t:'Array Parameter',d:'hard',
+  pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','FindMax','FindMin','DisplayStats'],
+  javaKeys:['int','void','return','findMax','findMin','displayStats'],
+  b:`Write three modules:\n<ol><li><code>FindMax(Numbers : ARRAY OF INTEGER, Size : INTEGER) RETURNS INTEGER</code> — declare a local <code>Max</code> variable</li>\n<li><code>FindMin(Numbers : ARRAY OF INTEGER, Size : INTEGER) RETURNS INTEGER</code> — declare a local <code>Min</code> variable</li>\n<li><code>DisplayStats(Numbers : ARRAY, Size : INTEGER)</code> — a procedure that declares local variables, calls both functions, and outputs max, min, and range</li></ol>\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Java: <code>public static int findMax(int[] numbers, int size)</code></div>`},
+
+{t:'Bubble Sort',d:'challenge',
+  pseudoKeys:['PROCEDURE','BYREF','DECLARE','Swap','ENDPROCEDURE','FOR','Temp','NoSwaps'],
+  javaKeys:['void','swap','for','temp','int[]','boolean'],
+  b:`Write <code>BubbleSort(BYREF Arr : ARRAY OF INTEGER, Size : INTEGER)</code> in CIE pseudocode <b>or</b> Java.\n<ol><li>Declare all local variables (loop counters, a NoSwaps flag, Temp for swapping).</li>\n<li>Use a separate <code>Swap</code> procedure.</li>\n<li>Show the array after each pass when sorting [4, 2, 7, 1, 3].</li></ol>\n<div class="task-hint">💡 Pseudocode: <code>DECLARE I : INTEGER</code>, <code>DECLARE NoSwaps : BOOLEAN</code><br>Java: <code>public static void bubbleSort(int[] arr, int size)</code></div>`},
+
+{t:'Password Checker',d:'challenge',
+  pseudoKeys:['FUNCTION','BOOLEAN','RETURN','ENDFUNCTION','DECLARE','HasMinLength','HasUpperCase','HasDigit','CheckPassword','Count'],
+  javaKeys:['boolean','return','String','hasMinLength','hasUpperCase','hasDigit','checkPassword','int'],
+  b:`Build a modular password system. Declare all local variables.\n<ol><li><code>HasMinLength(Password : STRING, MinLen : INTEGER) RETURNS BOOLEAN</code></li>\n<li><code>HasUpperCase(Password : STRING) RETURNS BOOLEAN</code> — declare a local <code>Found</code> variable</li>\n<li><code>HasDigit(Password : STRING) RETURNS BOOLEAN</code> — declare a local <code>Found</code> variable</li>\n<li><code>CheckPassword(Password : STRING) RETURNS STRING</code> — declare a local <code>Count</code> variable, call all three functions, return "Strong"/"Medium"/"Weak"</li></ol>\nWrite in CIE pseudocode <b>or</b> Java. Work through <code>CheckPassword("Hello1")</code> showing what each function returns.\n<div class="task-hint">💡 Java: <code>public static boolean hasMinLength(String password, int minLen)</code></div>`},
+
+{t:'Menu Calculator',d:'challenge',
+  pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','GetChoice','GetNumber','WHILE','CALL'],
+  javaKeys:['int','double','void','return','getChoice','getNumber','while','Scanner'],
+  b:`Build a menu-driven calculator. Declare all local variables in every module.\n<ol><li>Functions: <code>Add</code>, <code>Subtract</code>, <code>Multiply</code>, <code>Divide</code> — each takes two REAL parameters and returns REAL</li>\n<li><code>GetChoice() RETURNS INTEGER</code> — declare a local <code>Choice</code>, display menu, return choice</li>\n<li><code>GetNumber(Prompt : STRING) RETURNS REAL</code> — declare a local <code>Num</code>, display prompt, return number</li>\n<li>Main program with a WHILE loop, input validation, and division-by-zero handling</li></ol>\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Java: <code>public static int getChoice()</code> and <code>public static double getNumber(String prompt)</code></div>`},
+
+{t:'Exam-Style Question',d:'challenge',
+  pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','CALL','CalculateMean','CountAbove','PrintReport'],
+  javaKeys:['double','int','void','return','calculateMean','countAbove','printReport'],
+  b:`<b>[12 marks]</b> A school stores student marks in an array. Declare all local variables in every module.\n<ol><li><code>CalculateMean(Marks : ARRAY OF INTEGER, Count : INTEGER) RETURNS REAL</code> — declare a local <code>Total</code> [3]</li>\n<li><code>CountAbove(Marks : ARRAY OF INTEGER, Count : INTEGER, Threshold : INTEGER) RETURNS INTEGER</code> — declare a local <code>Counter</code> [3]</li>\n<li><code>PrintReport(Marks : ARRAY OF INTEGER, Count : INTEGER)</code> — declare local variables for mean and counts, call both functions, output: the mean, how many scored above the mean, and how many scored above 75 [4]</li></ol>\nExplain why separate functions are better than one long procedure. [2]\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Java: <code>public static double calculateMean(int[] marks, int count)</code></div>`},
 ];
 
 let curTask=0;
 const $tCard=document.getElementById('taskCard'),$tPos=document.getElementById('taskPos'),$tPrev=document.getElementById('prevTask'),$tNext=document.getElementById('nextTask'),$tFill=document.getElementById('taskFill'),$tSide=document.getElementById('taskSide');
 const $editor=document.getElementById('codeEditor'),$lineNums=document.getElementById('lineNumbers'),$feedbackBox=document.getElementById('feedbackBox'),$editorStatus=document.getElementById('editorStatus');
+const $editorLang=document.getElementById('editorLang');
 
 function getProgress(){return LS.get('progress_'+currentUser?.email)||{};}
 function saveProgress(taskIdx,status,code){if(!currentUser)return;const p=getProgress();p[taskIdx]={status,code,time:Date.now()};LS.set('progress_'+currentUser.email,p);}
@@ -383,8 +656,15 @@ function renderTask(){
   const a=$tSide.querySelector('.active');if(a)a.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 
-// Code editor — auto-indent
+// ── Code editor — auto-indent for pseudocode AND Java ──
+const PSEUDO_INDENT_KW = /^(PROCEDURE|FUNCTION|IF|ELSE|FOR|WHILE|REPEAT|CASE)\b/i;
+const PSEUDO_DEDENT_KW = /^(ENDPROCEDURE|ENDFUNCTION|ENDIF|ENDFOR|ENDWHILE|UNTIL|ENDCASE|NEXT|ELSE)\b/i;
+const JAVA_INDENT_CHARS = /[{(]\s*$/;
+const JAVA_DEDENT_CHARS = /^[\s]*[})]/;
+
 $editor.addEventListener('keydown',e=>{
+  const lang = $editorLang.value;
+
   if(e.key==='Tab'){
     e.preventDefault();
     const s=$editor.selectionStart,end=$editor.selectionEnd;
@@ -392,22 +672,42 @@ $editor.addEventListener('keydown',e=>{
     $editor.selectionStart=$editor.selectionEnd=s+4;
     updateLineNumbers();return;
   }
+
   if(e.key==='Enter'){
     e.preventDefault();
     const s=$editor.selectionStart;
     const lineStart=$editor.value.lastIndexOf('\n',s-1)+1;
     const currentLine=$editor.value.substring(lineStart,s);
-    // Count existing indent
     const indent=currentLine.match(/^(\s*)/)[1];
-    // Add extra indent after keywords
-    const trimmed=currentLine.trim().toUpperCase();
+    const trimmed=currentLine.trim();
+
     let extra='';
-    if(/^(PROCEDURE|FUNCTION|IF|ELSE|FOR|WHILE|REPEAT|CASE)/.test(trimmed))extra='    ';
+    if(lang==='pseudo'){
+      if(PSEUDO_INDENT_KW.test(trimmed)) extra='    ';
+    } else {
+      if(JAVA_INDENT_CHARS.test(trimmed)) extra='    ';
+    }
+
     $editor.value=$editor.value.substring(0,s)+'\n'+indent+extra+$editor.value.substring(s);
     $editor.selectionStart=$editor.selectionEnd=s+1+indent.length+extra.length;
     updateLineNumbers();
   }
+
+  // Auto-dedent: when typing a closing keyword, reduce indent
+  if(e.key==='Backspace'){
+    const s=$editor.selectionStart;
+    const lineStart=$editor.value.lastIndexOf('\n',s-1)+1;
+    const beforeCursor=$editor.value.substring(lineStart,s);
+    // If the line is only spaces (4+), remove 4 at once
+    if(/^\s{4,}$/.test(beforeCursor) && beforeCursor.length>=4){
+      e.preventDefault();
+      $editor.value=$editor.value.substring(0,s-4)+$editor.value.substring(s);
+      $editor.selectionStart=$editor.selectionEnd=s-4;
+      updateLineNumbers();
+    }
+  }
 });
+
 $editor.addEventListener('input',()=>{updateLineNumbers();autoSave();});
 $editor.addEventListener('scroll',()=>{$lineNums.scrollTop=$editor.scrollTop;});
 
@@ -424,26 +724,43 @@ function autoSave(){
   if(existing!=='done')saveProgress(curTask,'started',code);
 }
 
-// Submit + feedback
+// ── Submit + language-aware feedback ──
 document.getElementById('submitAnswer').addEventListener('click',()=>{
   const code=$editor.value.trim();
   if(!code){$feedbackBox.innerHTML='<strong>Please type your answer first.</strong>';$feedbackBox.className='feedback-box fb-needs';$feedbackBox.classList.remove('hidden');return;}
+
   const t=tasks[curTask];
-  const upper=code.toUpperCase();
-  const found=t.keys.filter(k=>upper.includes(k.toUpperCase()));
-  const missed=t.keys.filter(k=>!upper.includes(k.toUpperCase()));
-  const pct=found.length/t.keys.length;
+  const lang=$editorLang.value;
+  const keys = lang==='java' ? t.javaKeys : t.pseudoKeys;
+  const langLabel = lang==='java' ? 'Java' : 'Pseudocode';
+
+  // Case-sensitive check for Java, case-insensitive for pseudocode
+  const found=[];
+  const missed=[];
+  keys.forEach(k=>{
+    if(lang==='java'){
+      // Java: case-sensitive match
+      if(code.includes(k)) found.push(k);
+      else missed.push(k);
+    } else {
+      // Pseudocode: case-insensitive
+      if(code.toUpperCase().includes(k.toUpperCase())) found.push(k);
+      else missed.push(k);
+    }
+  });
+
+  const pct=found.length/keys.length;
 
   let cls,msg;
   if(pct>=0.75){
-    cls='fb-good';msg=`<strong>Great work!</strong> Your answer covers the key concepts.`;
+    cls='fb-good';msg=`<strong>Great work!</strong> Your ${langLabel} answer covers the key concepts.`;
     saveProgress(curTask,'done',code);
     $editorStatus.textContent='✓ Completed';$editorStatus.className='editor-status saved';
   }else if(pct>=0.4){
-    cls='fb-partial';msg=`<strong>Good start!</strong> Your answer is on the right track but is missing some elements.`;
+    cls='fb-partial';msg=`<strong>Good start!</strong> Your ${langLabel} answer is on the right track but is missing some elements.`;
     saveProgress(curTask,'started',code);
   }else{
-    cls='fb-needs';msg=`<strong>Keep going!</strong> Your answer needs more detail.`;
+    cls='fb-needs';msg=`<strong>Keep going!</strong> Your ${langLabel} answer needs more detail.`;
     saveProgress(curTask,'started',code);
   }
 
@@ -451,6 +768,17 @@ document.getElementById('submitAnswer').addEventListener('click',()=>{
   found.forEach(k=>{checklist+=`<li class="fb-check">Includes: <code>${k}</code></li>`;});
   missed.forEach(k=>{checklist+=`<li class="fb-cross">Missing: <code>${k}</code></li>`;});
   checklist+='</ul>';
+
+  // Add language-specific tips for common issues
+  if(lang==='java' && missed.length>0){
+    const hasUpperCase = missed.some(k => k[0] === k[0].toUpperCase() && k[0] !== k[0].toLowerCase());
+    if(!hasUpperCase){
+      checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">💡 Remember: Java uses <b>camelCase</b> for method and variable names.</p>';
+    }
+  }
+  if(lang==='pseudo' && missed.some(k=>k==='DECLARE')){
+    checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">💡 Remember: Declare all local variables with <b>DECLARE VariableName : DataType</b></p>';
+  }
 
   $feedbackBox.innerHTML=msg+checklist;
   $feedbackBox.className='feedback-box '+cls;
@@ -469,7 +797,7 @@ renderTask();
    ══════════════════════════════════════════════ */
 function refreshDashboard(){
   const config=LS.get('config');if(!config)return;
-  // Gather all student progress
+  // Gather all student data
   const students=[];
   for(let i=0;i<localStorage.length;i++){
     const k=localStorage.key(i);
@@ -477,41 +805,65 @@ function refreshDashboard(){
       const email=k.replace('fp_progress_','');
       if(email!==config.teacherEmail){
         const prog=JSON.parse(localStorage.getItem(k));
-        students.push({email,prog});
+        const quizRaw=localStorage.getItem('fp_quiz_'+email);
+        const quizData=quizRaw?JSON.parse(quizRaw):{};
+        students.push({email,prog,quizData});
+      }
+    }
+  }
+  // Also pick up students who only have quiz data
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k.startsWith('fp_quiz_')){
+      const email=k.replace('fp_quiz_','');
+      if(email!==config.teacherEmail && !students.find(s=>s.email===email)){
+        const quizRaw=localStorage.getItem(k);
+        students.push({email,prog:{},quizData:quizRaw?JSON.parse(quizRaw):{}});
       }
     }
   }
 
-  // Summary
-  const $sum=document.getElementById('dashSummary');
   const totalTasks=tasks.length;
-  let totalDone=0,totalStarted=0;
-  students.forEach(s=>{Object.values(s.prog).forEach(v=>{if(v.status==='done')totalDone++;else if(v.status==='started')totalStarted++;});});
+  const totalQuiz=12;
+  let totalDone=0,totalStarted=0,totalQuizCorrect=0,totalQuizAttempts=0;
+  students.forEach(s=>{
+    Object.values(s.prog).forEach(v=>{if(v.status==='done')totalDone++;else if(v.status==='started')totalStarted++;});
+    Object.values(s.quizData).forEach(v=>{if(v.status==='correct')totalQuizCorrect++;totalQuizAttempts+=(v.attempts||0);});
+  });
+
+  const $sum=document.getElementById('dashSummary');
   $sum.innerHTML=`
     <div class="dash-stat"><div class="ds-num">${students.length}</div><div class="ds-label">Students</div></div>
-    <div class="dash-stat"><div class="ds-num">${totalDone}</div><div class="ds-label">Tasks Completed</div></div>
+    <div class="dash-stat"><div class="ds-num">${totalDone}</div><div class="ds-label">Tasks Done</div></div>
     <div class="dash-stat"><div class="ds-num">${totalStarted}</div><div class="ds-label">In Progress</div></div>
-    <div class="dash-stat"><div class="ds-num">${students.length*totalTasks-totalDone-totalStarted}</div><div class="ds-label">Not Started</div></div>`;
+    <div class="dash-stat"><div class="ds-num">${totalQuizCorrect}</div><div class="ds-label">Quiz Qs Correct</div></div>
+    <div class="dash-stat"><div class="ds-num">${totalQuizAttempts}</div><div class="ds-label">Quiz Attempts</div></div>`;
 
-  // Table
   const $body=document.getElementById('dashBody');$body.innerHTML='';
-  if(!students.length){$body.innerHTML='<tr><td colspan="5" style="text-align:center;opacity:.5;padding:1.5rem">No student data yet.</td></tr>';return;}
+  if(!students.length){$body.innerHTML='<tr><td colspan="7" style="text-align:center;opacity:.5;padding:1.5rem">No student data yet.</td></tr>';return;}
   students.forEach(s=>{
     let done=0,started=0;
     for(let i=0;i<totalTasks;i++){const st=s.prog[i]?.status;if(st==='done')done++;else if(st==='started')started++;}
     const notStarted=totalTasks-done-started;
+
+    let qCorrect=0,qAttempts=0;
+    for(let i=0;i<totalQuiz;i++){const d=s.quizData[i];if(d){if(d.status==='correct')qCorrect++;qAttempts+=(d.attempts||0);}}
+
     let dots='<div class="detail-row">';
     for(let i=0;i<totalTasks;i++){
       const st=s.prog[i]?.status;
       const cls=st==='done'?'dd-done':st==='started'?'dd-prog':'dd-none';
-      dots+=`<span class="detail-dot ${cls}">${i+1}</span>`;
+      dots+=`<span class="detail-dot ${cls}" title="Task ${i+1}">${i+1}</span>`;
     }
     dots+='</div>';
+
     $body.innerHTML+=`<tr>
       <td><strong>${s.email}</strong></td>
       <td><span class="badge-done">${done}</span></td>
       <td><span class="badge-prog">${started}</span></td>
       <td><span class="badge-none">${notStarted}</span></td>
+      <td><span class="badge-done">${qCorrect} / ${totalQuiz}</span></td>
+      <td>${qAttempts}</td>
       <td>${dots}</td></tr>`;
   });
 }
@@ -533,3 +885,22 @@ document.getElementById('saveWhitelist').addEventListener('click',()=>{
   LS.set('config',config);
   document.getElementById('whitelistEditor').classList.add('hidden');
 });
+
+/* ══════════════════════════════════════════════
+   SESSION PERSISTENCE — auto-login on page load
+   ══════════════════════════════════════════════ */
+(function checkSession() {
+  const session = LS.get('session');
+  if (session && session.email && session.role) {
+    const config = LS.get('config');
+    if (session.role === 'teacher' && config && session.email === config.teacherEmail) {
+      currentUser = session;
+      enterApp();
+    } else if (session.role === 'student' && config && isWhitelisted(session.email, config)) {
+      currentUser = session;
+      enterApp();
+    } else {
+      LS.remove('session');
+    }
+  }
+})();
