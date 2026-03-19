@@ -754,7 +754,7 @@ const tasks=[
   b:`What does this output?\n<pre>PROCEDURE ShowDouble(X : INTEGER)\n    OUTPUT X * 2\nENDPROCEDURE\n\nCALL ShowDouble(7)</pre>\nRewrite in <b>Java</b> using correct naming conventions.\n<div class="task-hint">💡 The output is 14. In Java, use camelCase: <code>showDouble</code>.</div>`},
 
 {t:'Fill in the Blanks',d:'easy',
-  pseudoKeys:['Count','5','PrintStars','ENDPROCEDURE'],
+  pseudoKeys:['Count','5'],
   javaKeys:['count','5','printStars','}'],
   b:`Complete the gaps so the procedure prints 5 stars:\n<pre>PROCEDURE PrintStars(______ : INTEGER)\n    FOR I ← 1 TO Count\n        OUTPUT "*"\n    NEXT I\nENDPROCEDURE\n\nCALL PrintStars(______)</pre>\n<div class="task-hint">💡 The parameter name must match what's used in the loop.</div>`},
 
@@ -794,7 +794,7 @@ const tasks=[
   b:`Write a program with two modules:\n<ol><li>A <b>function</b> <code>CalculateTotal(Price : REAL, Qty : INTEGER) RETURNS REAL</code> that returns <code>Price * Qty</code></li>\n<li>A <b>procedure</b> <code>PrintReceipt(Item : STRING, Price : REAL, Qty : INTEGER)</code> that declares a local variable <code>Total</code>, calls <code>CalculateTotal</code>, and outputs the item name and total cost</li></ol>\nCall <code>PrintReceipt("Notebook", 3.50, 4)</code>. What is the output?\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Total : REAL</code> inside the procedure.<br>Java: <code>double total = calculateTotal(price, qty);</code></div>`},
 
 {t:'Argument Order',d:'medium',
-  pseudoKeys:['6','-6','position','first','second','ENDPROCEDURE'],
+  pseudoKeys:['6','-6','position','first','second'],
   javaKeys:['6','-6','position','first','second'],
   b:`<pre>PROCEDURE Subtract(A : INTEGER, B : INTEGER)\n    OUTPUT A - B\nENDPROCEDURE\n\nCALL Subtract(10, 4)\nCALL Subtract(4, 10)</pre>\n<b>(a)</b> Output of each call? <b>(b)</b> Why does order matter?\n<div class="task-hint">💡 A gets the first value, B the second.</div>`},
 
@@ -827,11 +827,6 @@ const tasks=[
   pseudoKeys:['PROCEDURE','BYREF','DECLARE','Temp','ENDPROCEDURE','Swap'],
   javaKeys:['void','swap','temp','int[]'],
   b:`Write <code>Swap(BYREF A : INTEGER, BYREF B : INTEGER)</code> that uses a declared local variable <code>Temp</code> to swap the values. Show what happens step by step when X=5, Y=9. Why is BYREF essential?\n\nIn Java, show how to swap two elements in an array (since Java primitives are always by value).\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Temp : INTEGER</code> inside Swap.</div>`},
-
-{t:'Recursive Function',d:'hard',
-  pseudoKeys:['FUNCTION','RETURN','ENDFUNCTION','Factorial','IF','ELSE','ENDIF','base case'],
-  javaKeys:['int','return','factorial','if','else','base case'],
-  b:`<pre>FUNCTION Factorial(N : INTEGER) RETURNS INTEGER\n    IF N &lt;= 1 THEN\n        RETURN 1\n    ELSE\n        RETURN N * Factorial(N - 1)\n    ENDIF\nENDFUNCTION</pre>\n<b>(a)</b> Work through Factorial(5) showing each call and return value.<br><b>(b)</b> What is the base case?<br><b>(c)</b> What would happen without one?<br><b>(d)</b> Rewrite in Java.\n<div class="task-hint">💡 Java: <code>public static int factorial(int n)</code></div>`},
 
 {t:'String Processing',d:'hard',
   pseudoKeys:['FUNCTION','RETURN','ENDFUNCTION','DECLARE','CountChar','FOR','LENGTH','Count'],
