@@ -853,10 +853,6 @@ const tasks=[
   javaKeys:['int','double','void','return','getChoice','getNumber','while','Scanner'],
   b:`Build a menu-driven calculator. Declare all local variables in every module.\n<ol><li>Functions: <code>Add</code>, <code>Subtract</code>, <code>Multiply</code>, <code>Divide</code> — each takes two REAL parameters and returns REAL</li>\n<li><code>GetChoice() RETURNS INTEGER</code> — declare a local <code>Choice</code>, display menu, return choice</li>\n<li><code>GetNumber(Prompt : STRING) RETURNS REAL</code> — declare a local <code>Num</code>, display prompt, return number</li>\n<li>Main program with a WHILE loop, input validation, and division-by-zero handling</li></ol>\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Java: <code>public static int getChoice()</code> and <code>public static double getNumber(String prompt)</code></div>`},
 
-{t:'Exam-Style Question',d:'challenge',
-  pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','CALL','CalculateMean','CountAbove','PrintReport'],
-  javaKeys:['double','int','void','return','calculateMean','countAbove','printReport'],
-  b:`<b>[12 marks]</b> A school stores student marks in an array. Declare all local variables in every module.\n<ol><li><code>CalculateMean(Marks : ARRAY OF INTEGER, Count : INTEGER) RETURNS REAL</code> — declare a local <code>Total</code> [3]</li>\n<li><code>CountAbove(Marks : ARRAY OF INTEGER, Count : INTEGER, Threshold : INTEGER) RETURNS INTEGER</code> — declare a local <code>Counter</code> [3]</li>\n<li><code>PrintReport(Marks : ARRAY OF INTEGER, Count : INTEGER)</code> — declare local variables for mean and counts, call both functions, output: the mean, how many scored above the mean, and how many scored above 75 [4]</li></ol>\nExplain why separate functions are better than one long procedure. [2]\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Java: <code>public static double calculateMean(int[] marks, int count)</code></div>`},
 ];
 
 let curTask=0;
