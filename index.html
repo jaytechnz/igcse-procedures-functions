@@ -26,34 +26,13 @@
     <div id="loginForm">
       <label>School Email</label>
       <input type="email" id="loginEmail" placeholder="firstName.lastName@student.cga.school" autocomplete="email"/>
-      <div id="loginPassGroup" class="hidden">
-        <label>Password</label>
-        <input type="password" id="loginPass" placeholder="Teacher password"/>
-      </div>
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Your password"/>
+      <p class="login-hint" id="loginHint">First time? Entering your details will create your account.</p>
       <button class="btn-login" id="loginBtn">Sign In</button>
       <div class="login-error hidden" id="loginError"></div>
+      <div class="login-spinner hidden" id="loginSpinner">Signing in...</div>
     </div>
-  </div>
-</div>
-
-<!-- ═══════════════ TEACHER SETUP ═══════════════ -->
-<div id="setupScreen" class="fullscreen login-bg hidden">
-  <div class="login-card setup-card">
-    <h2>Teacher Setup</h2>
-    <p class="setup-intro">First time? Create your teacher password and whitelist student email addresses or domains.</p>
-    <label>Teacher Email</label>
-    <input type="email" id="setupEmail" placeholder="i.lastName@cga.school"/>
-    <label>Create Password</label>
-    <input type="password" id="setupPass" placeholder="Choose a secure password"/>
-    <label>Confirm Password</label>
-    <input type="password" id="setupPass2" placeholder="Re-enter password"/>
-    <label>Whitelisted Email Domain(s)</label>
-    <input type="text" id="setupDomains" placeholder="e.g. student.cga.school"/>
-    <p class="setup-hint">Students with email addresses ending in these domains can sign in. Separate multiple domains with commas.</p>
-    <label>Whitelisted Individual Emails <span class="optional">(optional)</span></label>
-    <textarea id="setupEmails" rows="4" placeholder="One email per line, e.g.&#10;john.smith@student.cga.school&#10;jane.doe@student.cga.school"></textarea>
-    <button class="btn-login" id="setupBtn">Save &amp; Continue</button>
-    <div class="login-error hidden" id="setupError"></div>
   </div>
 </div>
 
@@ -86,15 +65,10 @@
   </div>
   <div class="instr" id="instr">Drag the highlighted argument from the Main Program into the matching parameter slot.</div>
   <div class="board">
-    <!-- Output row -->
     <div class="output-row hidden" id="outputStrip">
       <div class="output-strip"><div class="output-label">OUTPUT</div><div class="output-text" id="outputText"></div></div>
     </div>
-
-    <!-- ROW 1 LABEL -->
     <div class="row-label rl-proc">Procedure Example</div>
-
-    <!-- ROW 1: PROCEDURE -->
     <div class="panel panel-left" id="panelLeft">
       <div class="panel-banner">Main Program</div>
       <div class="panel-code" id="mainCode"></div>
@@ -111,11 +85,7 @@
       <div class="panel-banner" id="defBanner">Procedure Definition</div>
       <div class="panel-code" id="defCode"></div>
     </div>
-
-    <!-- ROW 2 LABEL -->
     <div class="row-label rl-func" id="funcRowLabel">Function Example</div>
-
-    <!-- ROW 2: FUNCTION -->
     <div class="panel panel-left" id="panelLeft2">
       <div class="panel-banner">Main Program</div>
       <div class="panel-code" id="mainCode2"></div>
@@ -148,7 +118,7 @@
   <div class="dash-wrap">
     <h2 class="dash-title">Student Progress Dashboard</h2>
     <div class="dash-controls">
-      <button class="btn-accent btn-sm" id="dashRefresh">↻ Refresh</button>
+      <button class="btn-accent btn-sm" id="dashRefresh">↻ Refresh from Firebase</button>
       <button class="btn-sm" id="manageWhitelist">Manage Whitelist</button>
     </div>
     <div class="dash-summary" id="dashSummary"></div>
@@ -158,14 +128,10 @@
         <tbody id="dashBody"></tbody>
       </table>
     </div>
-    <!-- Whitelist editor -->
     <div class="whitelist-editor hidden" id="whitelistEditor">
       <h3>Manage Whitelist</h3>
-      <label>Whitelisted Domains</label>
-      <input type="text" id="editDomains"/>
-      <label>Individual Emails</label>
-      <textarea id="editEmails" rows="5"></textarea>
-      <div class="wl-btns"><button class="btn-accent" id="saveWhitelist">Save</button><button class="btn-sm" id="cancelWhitelist">Cancel</button></div>
+      <p class="setup-hint">Edit the <code>STUDENT_WHITELIST</code> in <code>app.js</code> and redeploy to change which students can sign up.</p>
+      <button class="btn-sm" id="cancelWhitelist">Close</button>
     </div>
   </div>
 </section>
@@ -212,11 +178,10 @@
     <main class="task-main">
       <div class="task-nav">
         <button class="btn-sm" id="prevTask" disabled>← Prev</button>
-        <span class="task-pos" id="taskPos">1 / 24</span>
+        <span class="task-pos" id="taskPos">1 / 22</span>
         <button class="btn-sm" id="nextTask">Next →</button>
       </div>
       <article class="task-card" id="taskCard"></article>
-      <!-- Code editor -->
       <div class="editor-section" id="editorSection">
         <div class="editor-head">
           <span class="editor-title">Your Answer</span>
@@ -243,6 +208,10 @@
 
 </div><!-- /appShell -->
 
+<!-- Firebase SDK (v9 compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

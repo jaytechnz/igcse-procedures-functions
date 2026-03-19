@@ -1,208 +1,161 @@
 /* ═══════════════════════════════════════════
    IGCSE 0478 — Functions & Parameters
-   Full platform with auth, dashboard, editor
+   Firebase-secured platform
    ═══════════════════════════════════════════ */
 
-// ═══ STORAGE HELPERS ═══
-const LS = {
-  get(k) { try { return JSON.parse(localStorage.getItem('fp_' + k)); } catch { return null; } },
-  set(k, v) { localStorage.setItem('fp_' + k, JSON.stringify(v)); },
-  remove(k) { localStorage.removeItem('fp_' + k); }
+/* ═══════════════════════════════════════════
+   ★ TEACHER: EDIT THESE TWO SECTIONS ★
+   ═══════════════════════════════════════════ */
+
+// 1. Paste your Firebase config here (from Firebase Console → Project Settings → Your Apps)
+const FIREBASE_CONFIG = {
+  apiKey: "PASTE_YOUR_API_KEY_HERE",
+  authDomain: "PASTE_YOUR_AUTH_DOMAIN_HERE",
+  projectId: "PASTE_YOUR_PROJECT_ID_HERE",
+  storageBucket: "PASTE_YOUR_STORAGE_BUCKET_HERE",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID_HERE",
+  appId: "PASTE_YOUR_APP_ID_HERE"
 };
 
-// ═══ AUTH ═══
-let currentUser = null; // {email, role:'student'|'teacher'}
+// 2. Student whitelist — only these emails/domains can create student accounts
+const STUDENT_WHITELIST = {
+  domains: ['student.cga.school'],
+  emails: [
+    // 'john.smith@student.cga.school',
+  ],
+};
 
-// ── Session persistence — auto-login runs after all code loads (see bottom of file) ──
+/* ═══════════════════════════════════════════
+   FIREBASE INIT
+   ═══════════════════════════════════════════ */
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; } return 'h' + Math.abs(h).toString(36); }
-
-// Login screen
+/* ═══════════════════════════════════════════
+   AUTH
+   ═══════════════════════════════════════════ */
+let currentUser = null; // {uid, email, role}
 const loginScreen = document.getElementById('loginScreen');
-const setupScreen = document.getElementById('setupScreen');
 const appShell = document.getElementById('appShell');
 let loginRole = 'student';
 
+// Tab toggle
 document.querySelectorAll('.ltab').forEach(t => {
   t.addEventListener('click', () => {
     document.querySelectorAll('.ltab').forEach(b => b.classList.remove('active'));
     t.classList.add('active');
     loginRole = t.dataset.role;
-    document.getElementById('loginPassGroup').classList.toggle('hidden', loginRole === 'student');
     document.getElementById('loginEmail').placeholder = loginRole === 'teacher'
-      ? 'i.lastName@cga.school'
-      : 'firstName.lastName@student.cga.school';
+      ? 'i.lastName@cga.school' : 'firstName.lastName@student.cga.school';
+    document.getElementById('loginHint').textContent = loginRole === 'teacher'
+      ? 'First time? This will create your teacher account.'
+      : 'First time? This will create your student account.';
   });
 });
 
-document.getElementById('loginBtn').addEventListener('click', () => {
-  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  const pass = document.getElementById('loginPass').value;
-  const errEl = document.getElementById('loginError');
-  errEl.classList.add('hidden');
-
-  if (!email || !email.includes('@')) { showErr(errEl, 'Please enter a valid email.'); return; }
-
-  const config = LS.get('config');
-
-  if (loginRole === 'teacher') {
-    if (!config) { loginScreen.classList.add('hidden'); setupScreen.classList.remove('hidden'); document.getElementById('setupEmail').value = email; return; }
-    if (email !== config.teacherEmail) { showErr(errEl, 'Email not recognised as a teacher account.'); return; }
-    if (hashStr(pass) !== config.teacherPassHash) { showErr(errEl, 'Incorrect password.'); return; }
-    currentUser = { email, role: 'teacher' };
-    enterApp();
-  } else {
-    if (!config) { showErr(errEl, 'The teacher has not set up this platform yet.'); return; }
-    if (!isWhitelisted(email, config)) { showErr(errEl, 'Your email is not on the whitelist. Ask your teacher to add it.'); return; }
-    currentUser = { email, role: 'student' };
-    enterApp();
-  }
-});
-
-function isWhitelisted(email, config) {
-  const domain = email.split('@')[1];
-  if (config.domains && config.domains.some(d => domain === d.trim().toLowerCase())) return true;
-  if (config.emails && config.emails.some(e => email === e.trim().toLowerCase())) return true;
+function isStudentWhitelisted(email) {
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (STUDENT_WHITELIST.domains.some(d => domain === d.toLowerCase())) return true;
+  if (STUDENT_WHITELIST.emails.some(e => email.toLowerCase() === e.toLowerCase())) return true;
   return false;
 }
 
 function showErr(el, msg) { el.textContent = msg; el.classList.remove('hidden'); }
 
-// Setup
-document.getElementById('setupBtn').addEventListener('click', () => {
-  const email = document.getElementById('setupEmail').value.trim().toLowerCase();
-  const p1 = document.getElementById('setupPass').value;
-  const p2 = document.getElementById('setupPass2').value;
-  const domains = document.getElementById('setupDomains').value;
-  const emails = document.getElementById('setupEmails').value;
-  const errEl = document.getElementById('setupError');
+// Login button
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  const spinner = document.getElementById('loginSpinner');
   errEl.classList.add('hidden');
 
-  if (!email || !email.includes('@')) { showErr(errEl, 'Enter a valid teacher email.'); return; }
-  if (p1.length < 4) { showErr(errEl, 'Password must be at least 4 characters.'); return; }
-  if (p1 !== p2) { showErr(errEl, 'Passwords do not match.'); return; }
-  if (!domains.trim() && !emails.trim()) { showErr(errEl, 'Add at least one domain or email to the whitelist.'); return; }
+  if (!email || !email.includes('@')) { showErr(errEl, 'Please enter a valid email.'); return; }
+  if (pass.length < 6) { showErr(errEl, 'Password must be at least 6 characters.'); return; }
 
-  const config = {
-    teacherEmail: email,
-    teacherPassHash: hashStr(p1),
-    domains: domains.split(',').map(d => d.trim().toLowerCase()).filter(Boolean),
-    emails: emails.split('\n').map(e => e.trim().toLowerCase()).filter(Boolean),
-  };
-  LS.set('config', config);
-  currentUser = { email, role: 'teacher' };
-  setupScreen.classList.add('hidden');
-  enterApp();
+  // Whitelist check for students (before hitting Firebase)
+  if (loginRole === 'student' && !isStudentWhitelisted(email)) {
+    showErr(errEl, 'Your email is not on the whitelist. Ask your teacher to add it.');
+    return;
+  }
+
+  spinner.classList.remove('hidden');
+
+  try {
+    // Try sign in first
+    const cred = await auth.signInWithEmailAndPassword(email, pass);
+    // Auth state listener handles the rest
+  } catch (signInErr) {
+    if (signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-credential') {
+      // New user — create account
+      try {
+        const cred = await auth.createUserWithEmailAndPassword(email, pass);
+        // Write user doc with role
+        await db.collection('users').doc(cred.user.uid).set({
+          email: email,
+          role: loginRole,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        // Create empty progress doc
+        await db.collection('progress').doc(cred.user.uid).set({
+          tasks: {},
+          quiz: {}
+        });
+        // Auth state listener handles the rest
+      } catch (createErr) {
+        spinner.classList.add('hidden');
+        showErr(errEl, createErr.message);
+      }
+    } else if (signInErr.code === 'auth/wrong-password') {
+      spinner.classList.add('hidden');
+      showErr(errEl, 'Incorrect password.');
+    } else {
+      spinner.classList.add('hidden');
+      showErr(errEl, signInErr.message);
+    }
+  }
 });
 
-function enterApp() {
-  LS.set('session', { email: currentUser.email, role: currentUser.role });
+// Firebase auth state listener — fires on login/logout/page load
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    try {
+      const userDoc = await db.collection('users').doc(user.uid).get();
+      if (userDoc.exists) {
+        currentUser = { uid: user.uid, email: user.email, role: userDoc.data().role };
+      } else {
+        // User exists in Auth but not Firestore (shouldn't happen, but handle it)
+        const role = isStudentWhitelisted(user.email) ? 'student' : 'teacher';
+        await db.collection('users').doc(user.uid).set({
+          email: user.email, role: role,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        await db.collection('progress').doc(user.uid).set({ tasks: {}, quiz: {} });
+        currentUser = { uid: user.uid, email: user.email, role: role };
+      }
+      enterApp();
+    } catch (err) {
+      console.error('Auth state error:', err);
+    }
+  } else {
+    // Not signed in — show login
+    currentUser = null;
+    appShell.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+  }
+  document.getElementById('loginSpinner')?.classList.add('hidden');
+});
+
+async function enterApp() {
   loginScreen.classList.add('hidden');
-  setupScreen.classList.add('hidden');
   appShell.classList.remove('hidden');
   buildTabs();
   renderUserBadge();
-  if (currentUser.role === 'teacher') { seedDemoStudents(); switchView('demo'); }
+  // Load progress from Firestore into local cache
+  await refreshCache();
+  if (currentUser.role === 'teacher') switchView('demo');
   else switchView('tasks');
-}
-
-// Seed 3 demo students so the teacher can see the dashboard immediately
-function seedDemoStudents() {
-  const demoStudents = [
-    {
-      email: 'alice.chen@student.cga.school',
-      prog: {
-        0:{status:'done',code:'PROCEDURE Greet\n  Name = "Anika"\n  Argument is "Anika"\n  Data type is STRING',time:Date.now()-86400000},
-        1:{status:'done',code:'Output is 14\n\npublic static void showDouble(int x) {\n    System.out.println(x * 2);\n}\nshowDouble(7);',time:Date.now()-86400000},
-        2:{status:'done',code:'PROCEDURE PrintStars(Count : INTEGER)\n    FOR I ← 1 TO Count\n        OUTPUT "*"\n    NEXT I\nENDPROCEDURE\n\nCALL PrintStars(5)',time:Date.now()-80000000},
-        3:{status:'done',code:'The error is that "fifteen" is a STRING but Age expects an INTEGER.\nFix: CALL SayAge(15)',time:Date.now()-75000000},
-        4:{status:'done',code:'CALL DisplayMessage("Well done!", 3)',time:Date.now()-70000000},
-        5:{status:'done',code:'A procedure performs actions but does not return a value.\nA function returns a value.\n\nPROCEDURE SayHi()\n    OUTPUT "Hi"\nENDPROCEDURE\n\nFUNCTION Double(X : INTEGER) RETURNS INTEGER\n    RETURN X * 2\nENDFUNCTION',time:Date.now()-60000000},
-        6:{status:'done',code:'PROCEDURE PrintBorder(Length : INTEGER)\n    FOR I ← 1 TO Length\n        OUTPUT "-"\n    NEXT I\nENDPROCEDURE\n\nCALL PrintBorder(10)\nCALL PrintBorder(25)',time:Date.now()-50000000},
-        7:{status:'done',code:'FUNCTION AddVAT(Price : REAL) RETURNS REAL\n    RETURN Price * 1.15\nENDFUNCTION\n\nTotal ← AddVAT(200.00)\n// Total = 230.0',time:Date.now()-40000000},
-        8:{status:'started',code:'FUNCTION Power(Base : INTEGER, Exponent : INTEGER) RETURNS INTEGER\n    Result ← 1\n    FOR I ← 1 TO Exponent\n        Result ← Result * Base\n    NEXT I\n    RETURN Result\nENDFUNCTION',time:Date.now()-30000000},
-        9:{status:'started',code:'FUNCTION CalculateTotal(Price : REAL, Qty : INTEGER) RETURNS REAL\n    RETURN Price * Qty\nENDFUNCTION',time:Date.now()-20000000},
-        10:{status:'started',code:'Subtract(10, 4) outputs 6\nSubtract(4, 10) outputs -6\nOrder matters because A gets the first argument',time:Date.now()-10000000},
-      }
-    },
-    {
-      email: 'bob.martinez@student.cga.school',
-      prog: {
-        0:{status:'done',code:'Procedure name: Greet\nParameter: Name\nArgument: "Anika"\nData type: STRING',time:Date.now()-90000000},
-        1:{status:'done',code:'Output is 14',time:Date.now()-85000000},
-        2:{status:'done',code:'Count and 5\n\nPROCEDURE PrintStars(Count : INTEGER)\n    FOR I ← 1 TO Count\n        OUTPUT "*"\n    NEXT I\nENDPROCEDURE\nCALL PrintStars(5)',time:Date.now()-80000000},
-        3:{status:'done',code:'Error: "fifteen" is a string not an integer\nShould be: CALL SayAge(15)',time:Date.now()-70000000},
-        4:{status:'started',code:'CALL DisplayMessage("Well done!"',time:Date.now()-60000000},
-        5:{status:'started',code:'A procedure does stuff. A function returns something.',time:Date.now()-50000000},
-      }
-    },
-    {
-      email: 'fatima.khan@student.cga.school',
-      prog: {
-        0:{status:'done',code:'(a) Greet\n(b) Name\n(c) "Anika"\n(d) STRING',time:Date.now()-100000000},
-        1:{status:'done',code:'14\n\npublic static void showDouble(int x) {\n    System.out.println(x * 2);\n}\nshowDouble(7);',time:Date.now()-95000000},
-        2:{status:'done',code:'PROCEDURE PrintStars(Count : INTEGER)\n    FOR I ← 1 TO Count\n        OUTPUT "*"\n    NEXT I\nENDPROCEDURE\n\nCALL PrintStars(5)',time:Date.now()-90000000},
-        3:{status:'done',code:'The parameter Age expects an INTEGER but "fifteen" is a STRING.\nFix: CALL SayAge(15)',time:Date.now()-85000000},
-        4:{status:'done',code:'CALL DisplayMessage("Well done!", 3)\n\n// Java:\ndisplayMessage("Well done!", 3);',time:Date.now()-80000000},
-        5:{status:'done',code:'A procedure is like void in Java - no return.\nA function has RETURN and a return type.\n\nPROCEDURE Hello()\n    OUTPUT "Hello"\nENDPROCEDURE\n\nFUNCTION Square(N : INTEGER) RETURNS INTEGER\n    RETURN N * N\nENDFUNCTION',time:Date.now()-70000000},
-        6:{status:'done',code:'PROCEDURE PrintBorder(Length : INTEGER)\n    FOR I ← 1 TO Length\n        OUTPUT "-"\n    NEXT I\nENDPROCEDURE\n\nCALL PrintBorder(10)\nCALL PrintBorder(25)',time:Date.now()-60000000},
-        7:{status:'done',code:'FUNCTION AddVAT(Price : REAL) RETURNS REAL\n    RETURN Price * 1.15\nENDFUNCTION\n\nTotal ← AddVAT(200.00)\n// Total = 230',time:Date.now()-50000000},
-        8:{status:'done',code:'FUNCTION Power(Base : INTEGER, Exponent : INTEGER) RETURNS INTEGER\n    Result ← 1\n    FOR I ← 1 TO Exponent\n        Result ← Result * Base\n    NEXT I\n    RETURN Result\nENDFUNCTION\n\n// Power(3,4):\n// I=1 Result=3\n// I=2 Result=9\n// I=3 Result=27\n// I=4 Result=81',time:Date.now()-40000000},
-        9:{status:'done',code:'FUNCTION CalculateTotal(Price : REAL, Qty : INTEGER) RETURNS REAL\n    RETURN Price * Qty\nENDFUNCTION\n\nPROCEDURE PrintReceipt(Item : STRING, Price : REAL, Qty : INTEGER)\n    Total ← CalculateTotal(Price, Qty)\n    OUTPUT Item & ": " & Total\nENDPROCEDURE\n\nCALL PrintReceipt("Notebook", 3.50, 4)\n// Output: Notebook: 14.00',time:Date.now()-30000000},
-        10:{status:'done',code:'Subtract(10,4) = 6\nSubtract(4,10) = -6\nOrder matters because arguments match parameters by position. A=first, B=second.',time:Date.now()-20000000},
-        11:{status:'done',code:'OUTPUT inside ChangeX: 60 (10+50)\nOUTPUT X outside: 100 (unchanged)\nThe X inside is a local copy, not the global X.',time:Date.now()-15000000},
-        12:{status:'started',code:'FUNCTION CelsiusToFahrenheit(C : REAL) RETURNS REAL\n    RETURN C * 9/5 + 32\nENDFUNCTION\n\nFUNCTION FahrenheitToCelsius(F : REAL) RETURNS REAL\n    RETURN (F - 32) * 5/9\nENDFUNCTION',time:Date.now()-10000000},
-        13:{status:'started',code:'FUNCTION ApplyDiscount(Price : REAL, Percent : INTEGER) RETURNS REAL\n    RETURN Price - (Price * Percent / 100)\nENDFUNCTION',time:Date.now()-5000000},
-      }
-    },
-  ];
-
-  // Always overwrite demo data to keep it fresh
-  demoStudents.forEach(s => {
-    const key = 'fp_progress_' + s.email;
-    localStorage.setItem(key, JSON.stringify(s.prog));
-  });
-
-  // Seed quiz data for demo students
-  const demoQuiz = {
-    'alice.chen@student.cga.school': {
-      0:{status:'correct',answer:'A procedure performs actions but does not return a value. A function returns a value. In Java a procedure is a void method.',attempts:1,time:Date.now()-50000000},
-      1:{status:'correct',answer:'A parameter is the placeholder variable in the definition. An argument is the actual value you pass when you call the function.',attempts:2,time:Date.now()-48000000},
-      2:{status:'correct',answer:'Parameters make code reusable and modular. You can pass different values each time and it is easier to test and debug.',attempts:1,time:Date.now()-46000000},
-      3:{status:'correct',answer:'Width holds 10 because arguments are matched by position. The second argument 10 goes to the second parameter Width.',attempts:1,time:Date.now()-44000000},
-      4:{status:'partial',answer:'BYVAL means a copy is passed.',attempts:2,time:Date.now()-40000000},
-      5:{status:'partial',answer:'BYREF means the original variable is changed. You use it for swapping.',attempts:1,time:Date.now()-38000000},
-    },
-    'bob.martinez@student.cga.school': {
-      0:{status:'correct',answer:'A procedure does not return anything. A function returns a value.',attempts:3,time:Date.now()-60000000},
-      1:{status:'partial',answer:'A parameter is in the definition and argument is what you pass.',attempts:2,time:Date.now()-55000000},
-      2:{status:'wrong',answer:'Because it is better.',attempts:1,time:Date.now()-50000000},
-    },
-    'fatima.khan@student.cga.school': {
-      0:{status:'correct',answer:'A procedure performs actions but does not return a value to the caller. A function computes something and returns a value. In Java, a procedure is a void method while a function has a return type like int or String.',attempts:1,time:Date.now()-70000000},
-      1:{status:'correct',answer:'A parameter is the placeholder variable defined in the function header — it acts as a label. An argument is the actual value passed when you call the function. Parameters are defined, arguments are supplied.',attempts:1,time:Date.now()-68000000},
-      2:{status:'correct',answer:'Using parameters makes code reusable and modular. The same procedure can work with different values each time it is called. It is also easier to test, debug and maintain because each module is independent.',attempts:1,time:Date.now()-66000000},
-      3:{status:'correct',answer:'Width holds the value 10 because arguments are matched to parameters by position. The first argument 5 goes to Length and the second argument 10 goes to Width.',attempts:1,time:Date.now()-64000000},
-      4:{status:'correct',answer:'BYVAL means by value — a copy of the argument is passed to the procedure. Any changes made to the parameter inside the procedure do not affect the original variable. You would use it when you only need to read the value without modifying it.',attempts:1,time:Date.now()-62000000},
-      5:{status:'correct',answer:'BYREF means by reference — the procedure receives a reference to the original variable, not a copy. Changes inside the procedure do affect the original variable. This is useful when you need the procedure to update or modify the callers data, for example a Swap procedure.',attempts:1,time:Date.now()-60000000},
-      6:{status:'correct',answer:'First the inner call Triple(2) evaluates to 6 because 2 times 3 is 6. Then the outer call Triple(6) evaluates to 18 because 6 times 3 is 18. So Result equals 18.',attempts:1,time:Date.now()-58000000},
-      7:{status:'correct',answer:'You get an error because the number of arguments must exactly match the number of parameters defined in the procedure or function header.',attempts:1,time:Date.now()-56000000},
-      8:{status:'partial',answer:'A local variable only exists inside the procedure. Parameters are like local variables.',attempts:2,time:Date.now()-54000000},
-    },
-  };
-  Object.entries(demoQuiz).forEach(([email, data]) => {
-    localStorage.setItem('fp_quiz_' + email, JSON.stringify(data));
-  });
-
-  // Ensure demo emails are whitelisted
-  const config = LS.get('config');
-  if (config) {
-    const demoEmails = demoStudents.map(s => s.email);
-    demoEmails.forEach(e => {
-      if (!config.emails.includes(e)) config.emails.push(e);
-    });
-    LS.set('config', config);
-  }
 }
 
 function buildTabs() {
@@ -234,8 +187,42 @@ function switchView(id) {
 function renderUserBadge() {
   const b = document.getElementById('userBadge');
   const initials = currentUser.email.substring(0, 2).toUpperCase();
-  b.innerHTML = `<span class="ub-icon">${initials}</span><span>${currentUser.email}</span><button id="logoutBtn">Sign Out</button>`;
-  document.getElementById('logoutBtn').addEventListener('click', () => { LS.remove('session'); currentUser = null; appShell.classList.add('hidden'); loginScreen.classList.remove('hidden'); document.getElementById('loginEmail').value = ''; document.getElementById('loginPass').value = ''; });
+  const roleLabel = currentUser.role === 'teacher' ? '(Teacher)' : '';
+  b.innerHTML = `<span class="ub-icon">${initials}</span><span>${currentUser.email} ${roleLabel}</span><button id="logoutBtn">Sign Out</button>`;
+  document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
+}
+
+/* ═══════════════════════════════════════════
+   FIRESTORE DATA HELPERS
+   ═══════════════════════════════════════════ */
+async function loadProgress() {
+  if (!currentUser) return { tasks: {}, quiz: {} };
+  try {
+    const doc = await db.collection('progress').doc(currentUser.uid).get();
+    return doc.exists ? doc.data() : { tasks: {}, quiz: {} };
+  } catch { return { tasks: {}, quiz: {} }; }
+}
+
+async function saveTaskProgress(taskIdx, status, code) {
+  if (!currentUser) return;
+  const key = `tasks.${taskIdx}`;
+  await db.collection('progress').doc(currentUser.uid).update({
+    [key]: { status, code, time: Date.now() }
+  });
+}
+
+async function saveQuizProgress(qIdx, data) {
+  if (!currentUser) return;
+  const key = `quiz.${qIdx}`;
+  await db.collection('progress').doc(currentUser.uid).update({
+    [key]: data
+  });
+}
+
+// Local cache for snappy UI (synced to Firestore in background)
+let progressCache = { tasks: {}, quiz: {} };
+async function refreshCache() {
+  progressCache = await loadProgress();
 }
 
 
@@ -249,10 +236,6 @@ function confetti(el) {
   (function d(){ ctx.clearRect(0,0,c.width,c.height); let a=false; ps.forEach(p=>{ if(p.l<=0)return; a=true; p.x+=p.vx;p.y+=p.vy;p.vy+=.38;p.l-=.02; ctx.globalAlpha=p.l;ctx.fillStyle=p.co; ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill(); }); if(a&&f<100){f++;requestAnimationFrame(d);}else c.remove(); })();
 }
 
-
-/* ══════════════════════════════════════════════
-   TEACHER DEMO
-   ══════════════════════════════════════════════ */
 const S = [
 
   // ─── 0: No Parameters ───
@@ -576,7 +559,6 @@ loadDemo(0);
 
 /* ══════════════════════════════════════════════
    QUIZ — students type answers, get feedback
-   ══════════════════════════════════════════════ */
 const quiz = [
   { q:'Explain the difference between a <b>procedure</b> and a <b>function</b>.', keys:['procedure','function','return','value','void'], concepts:[{term:'procedure does not return',weight:2},{term:'function returns',weight:2},{term:'void',weight:1}], model:'A <b>procedure</b> performs actions but does <b>not return a value</b>. A <b>function</b> performs actions and <b>returns a value</b> that can be stored or used in an expression. In Java, a procedure is a <code>void</code> method.' },
   { q:'What is a <b>parameter</b>? How is it different from an <b>argument</b>?', keys:['parameter','argument','definition','call','placeholder','value','passed'], concepts:[{term:'parameter.*definition',weight:2},{term:'argument.*call',weight:2},{term:'placeholder',weight:1}], model:'A <b>parameter</b> is the placeholder variable in the function/procedure <b>definition</b>. An <b>argument</b> is the actual value <b>passed in the call</b>. Parameters are defined; arguments are supplied.' },
@@ -594,13 +576,7 @@ const quiz = [
 
 let curQ = 0;
 
-function getQuizData() { return LS.get('quiz_' + currentUser?.email) || {}; }
-function saveQuizData(qIdx, data) {
-  if (!currentUser) return;
-  const all = getQuizData();
-  all[qIdx] = data;
-  LS.set('quiz_' + currentUser.email, all);
-}
+function getQuizData() { return progressCache.quiz || {}; }
 
 function renderQuizNav() {
   const nav = document.getElementById('quizNav');
@@ -656,91 +632,51 @@ function renderQuiz() {
 function analyseQuizAnswer(qIdx, answer) {
   const q = quiz[qIdx];
   const lower = answer.toLowerCase();
-
-  // Keyword check
   const foundKeys = q.keys.filter(k => lower.includes(k.toLowerCase()));
-  const missedKeys = q.keys.filter(k => !lower.includes(k.toLowerCase()));
-
-  // Concept check (regex-based, weighted)
   let conceptScore = 0, conceptMax = 0;
   const conceptResults = [];
   q.concepts.forEach(c => {
     conceptMax += c.weight;
     const rx = new RegExp(c.term, 'i');
-    if (rx.test(answer)) {
-      conceptScore += c.weight;
-      conceptResults.push({ text: c.term.replace(/\|/g, ' / ').replace(/\\\(/g, '(').replace(/\\\)/g, ')'), hit: true });
-    } else {
-      conceptResults.push({ text: c.term.replace(/\|/g, ' / ').replace(/\\\(/g, '(').replace(/\\\)/g, ')'), hit: false });
-    }
+    if (rx.test(answer)) { conceptScore += c.weight; conceptResults.push({ text: c.term.replace(/\|/g, ' / ').replace(/\\\(/g, '(').replace(/\\\)/g, ')'), hit: true }); }
+    else { conceptResults.push({ text: c.term.replace(/\|/g, ' / ').replace(/\\\(/g, '(').replace(/\\\)/g, ')'), hit: false }); }
   });
-
   const pct = conceptMax > 0 ? conceptScore / conceptMax : 0;
   const tooShort = answer.trim().split(/\s+/).length < 5;
-
   let status, cls, heading;
-  if (pct >= 0.7 && !tooShort) {
-    status = 'correct'; cls = 'qf-correct'; heading = '✓ Excellent answer!';
-  } else if (pct >= 0.35 || foundKeys.length >= Math.ceil(q.keys.length * 0.5)) {
-    status = 'partial'; cls = 'qf-partial'; heading = '● Good start — but some key points are missing.';
-  } else {
-    status = 'wrong'; cls = 'qf-wrong'; heading = '✕ Your answer needs more detail. Read the guidance below and try again.';
-  }
-
-  // Build feedback HTML
-  let html = `<strong>${heading}</strong>`;
-
-  // Checklist
-  html += '<ul class="quiz-fb-list">';
-  conceptResults.forEach(c => {
-    html += `<li class="${c.hit ? 'qfb-yes' : 'qfb-no'}">${c.hit ? 'Mentioned' : 'Missing'}: ${c.text}</li>`;
-  });
+  if (pct >= 0.7 && !tooShort) { status = 'correct'; cls = 'qf-correct'; heading = '✓ Excellent answer!'; }
+  else if (pct >= 0.35 || foundKeys.length >= Math.ceil(q.keys.length * 0.5)) { status = 'partial'; cls = 'qf-partial'; heading = '● Good start — but some key points are missing.'; }
+  else { status = 'wrong'; cls = 'qf-wrong'; heading = '✕ Your answer needs more detail. Read the guidance below and try again.'; }
+  let html = `<strong>${heading}</strong><ul class="quiz-fb-list">`;
+  conceptResults.forEach(c => { html += `<li class="${c.hit ? 'qfb-yes' : 'qfb-no'}">${c.hit ? 'Mentioned' : 'Missing'}: ${c.text}</li>`; });
   html += '</ul>';
-
   if (tooShort) html += '<p style="margin-top:.4rem;color:var(--burg);font-weight:600">Your answer is very short. Try to write in full sentences.</p>';
-
-  // Always show model answer
   html += `<div class="qf-model"><b>Model answer:</b> ${q.model}</div>`;
-
   return { status, cls, html };
 }
 
-document.getElementById('quizSubmit').addEventListener('click', () => {
+document.getElementById('quizSubmit').addEventListener('click', async () => {
   const answer = document.getElementById('quizInput').value.trim();
   if (!answer) { document.getElementById('quizFeedback').innerHTML = '<strong>Please type your answer first.</strong>'; document.getElementById('quizFeedback').className = 'quiz-feedback qf-wrong'; document.getElementById('quizFeedback').classList.remove('hidden'); return; }
-
   const result = analyseQuizAnswer(curQ, answer);
-  const data = getQuizData();
-  const prev = data[curQ] || { attempts: 0 };
-
-  const saved = {
-    answer,
-    status: result.status,
-    feedback: result.html,
-    attempts: (prev.attempts || 0) + 1,
-    time: Date.now()
-  };
-  // Don't downgrade from correct
+  const prev = getQuizData()[curQ] || { attempts: 0 };
+  const saved = { answer, status: result.status, feedback: result.html, attempts: (prev.attempts || 0) + 1, time: Date.now() };
   if (prev.status === 'correct') saved.status = 'correct';
-  saveQuizData(curQ, saved);
-
+  // Save to cache and Firestore
+  progressCache.quiz[curQ] = saved;
+  await saveQuizProgress(curQ, saved);
   const fb = document.getElementById('quizFeedback');
-  fb.innerHTML = result.html;
-  fb.className = 'quiz-feedback ' + result.cls;
-  fb.classList.remove('hidden');
+  fb.innerHTML = result.html; fb.className = 'quiz-feedback ' + result.cls; fb.classList.remove('hidden');
   document.getElementById('quizAttemptInfo').textContent = 'Attempts: ' + saved.attempts;
   renderQuizNav();
 });
 
 document.getElementById('quizPrev').addEventListener('click', () => { if (curQ > 0) { curQ--; renderQuiz(); } });
 document.getElementById('quizNext').addEventListener('click', () => { if (curQ < quiz.length - 1) { curQ++; renderQuiz(); } });
-renderQuiz();
-
 
 
 /* ══════════════════════════════════════════════
    STUDENT TASKS + CODE EDITOR
-   Dual-language feedback: pseudoKeys vs javaKeys
    ══════════════════════════════════════════════ */
 const tasks=[
 {t:'Identify the Parts',d:'easy',
@@ -852,23 +788,21 @@ const tasks=[
   pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','GetChoice','GetNumber','WHILE','CALL'],
   javaKeys:['int','double','void','return','getChoice','getNumber','while','Scanner'],
   b:`Build a menu-driven calculator. Declare all local variables in every module.\n<ol><li>Functions: <code>Add</code>, <code>Subtract</code>, <code>Multiply</code>, <code>Divide</code> — each takes two REAL parameters and returns REAL</li>\n<li><code>GetChoice() RETURNS INTEGER</code> — declare a local <code>Choice</code>, display menu, return choice</li>\n<li><code>GetNumber(Prompt : STRING) RETURNS REAL</code> — declare a local <code>Num</code>, display prompt, return number</li>\n<li>Main program with a WHILE loop, input validation, and division-by-zero handling</li></ol>\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Java: <code>public static int getChoice()</code> and <code>public static double getNumber(String prompt)</code></div>`},
-
 ];
+
 
 let curTask=0;
 const $tCard=document.getElementById('taskCard'),$tPos=document.getElementById('taskPos'),$tPrev=document.getElementById('prevTask'),$tNext=document.getElementById('nextTask'),$tFill=document.getElementById('taskFill'),$tSide=document.getElementById('taskSide');
 const $editor=document.getElementById('codeEditor'),$lineNums=document.getElementById('lineNumbers'),$feedbackBox=document.getElementById('feedbackBox'),$editorStatus=document.getElementById('editorStatus');
 const $editorLang=document.getElementById('editorLang');
 
-function getProgress(){return LS.get('progress_'+currentUser?.email)||{};}
-function saveProgress(taskIdx,status,code){if(!currentUser)return;const p=getProgress();p[taskIdx]={status,code,time:Date.now()};LS.set('progress_'+currentUser.email,p);}
-
 function buildSide(){
-  $tSide.innerHTML='';const prog=getProgress();
+  $tSide.innerHTML='';
+  const taskData = progressCache.tasks || {};
   tasks.forEach((t,i)=>{
     const b=document.createElement('button');b.className='task-side-btn'+(i===curTask?' active':'');
     const dc={easy:'sd-easy',medium:'sd-medium',hard:'sd-hard',challenge:'sd-challenge'}[t.d];
-    const st=prog[i]?.status;
+    const st=taskData[i]?.status;
     const icon=st==='done'?' ✓':st==='started'?' ●':'';
     b.innerHTML=`<span class="side-dot ${dc}">${i+1}</span>${t.t}<span class="task-status-icon">${icon}</span>`;
     b.addEventListener('click',()=>{curTask=i;renderTask();});
@@ -877,7 +811,9 @@ function buildSide(){
 }
 
 function renderTask(){
-  const t=tasks[curTask],prog=getProgress(),saved=prog[curTask];
+  const t=tasks[curTask];
+  const taskData = progressCache.tasks || {};
+  const saved=taskData[curTask];
   const bc={easy:'b-easy',medium:'b-medium',hard:'b-hard',challenge:'b-challenge'}[t.d];
   $tCard.innerHTML=`<h3>Task ${curTask+1}: ${t.t} <span class="badge ${bc}">${t.d}</span></h3>${t.b}`;
   $tPos.textContent=(curTask+1)+' / '+tasks.length;
@@ -891,15 +827,12 @@ function renderTask(){
   const a=$tSide.querySelector('.active');if(a)a.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 
-// ── Code editor — auto-indent for pseudocode AND Java ──
+// Auto-indent
 const PSEUDO_INDENT_KW = /^(PROCEDURE|FUNCTION|IF|ELSE|FOR|WHILE|REPEAT|CASE)\b/i;
-const PSEUDO_DEDENT_KW = /^(ENDPROCEDURE|ENDFUNCTION|ENDIF|ENDFOR|ENDWHILE|UNTIL|ENDCASE|NEXT|ELSE)\b/i;
 const JAVA_INDENT_CHARS = /[{(]\s*$/;
-const JAVA_DEDENT_CHARS = /^[\s]*[})]/;
 
 $editor.addEventListener('keydown',e=>{
   const lang = $editorLang.value;
-
   if(e.key==='Tab'){
     e.preventDefault();
     const s=$editor.selectionStart,end=$editor.selectionEnd;
@@ -907,7 +840,6 @@ $editor.addEventListener('keydown',e=>{
     $editor.selectionStart=$editor.selectionEnd=s+4;
     updateLineNumbers();return;
   }
-
   if(e.key==='Enter'){
     e.preventDefault();
     const s=$editor.selectionStart;
@@ -915,25 +847,17 @@ $editor.addEventListener('keydown',e=>{
     const currentLine=$editor.value.substring(lineStart,s);
     const indent=currentLine.match(/^(\s*)/)[1];
     const trimmed=currentLine.trim();
-
     let extra='';
-    if(lang==='pseudo'){
-      if(PSEUDO_INDENT_KW.test(trimmed)) extra='    ';
-    } else {
-      if(JAVA_INDENT_CHARS.test(trimmed)) extra='    ';
-    }
-
+    if(lang==='pseudo'){ if(PSEUDO_INDENT_KW.test(trimmed)) extra='    '; }
+    else { if(JAVA_INDENT_CHARS.test(trimmed)) extra='    '; }
     $editor.value=$editor.value.substring(0,s)+'\n'+indent+extra+$editor.value.substring(s);
     $editor.selectionStart=$editor.selectionEnd=s+1+indent.length+extra.length;
     updateLineNumbers();
   }
-
-  // Auto-dedent: when typing a closing keyword, reduce indent
   if(e.key==='Backspace'){
     const s=$editor.selectionStart;
     const lineStart=$editor.value.lastIndexOf('\n',s-1)+1;
     const beforeCursor=$editor.value.substring(lineStart,s);
-    // If the line is only spaces (4+), remove 4 at once
     if(/^\s{4,}$/.test(beforeCursor) && beforeCursor.length>=4){
       e.preventDefault();
       $editor.value=$editor.value.substring(0,s-4)+$editor.value.substring(s);
@@ -951,70 +875,54 @@ function updateLineNumbers(){
   $lineNums.textContent=Array.from({length:lines},(_,i)=>i+1).join('\n');
 }
 
+let saveTimer = null;
 function autoSave(){
   const code=$editor.value.trim();
   if(!code)return;
-  const prog=getProgress();
-  const existing=prog[curTask]?.status;
-  if(existing!=='done')saveProgress(curTask,'started',code);
+  const existing = progressCache.tasks[curTask]?.status;
+  if(existing!=='done'){
+    progressCache.tasks[curTask] = { status:'started', code, time:Date.now() };
+    // Debounced Firestore write
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveTaskProgress(curTask,'started',code), 2000);
+  }
 }
 
-// ── Submit + language-aware feedback ──
-document.getElementById('submitAnswer').addEventListener('click',()=>{
+// Submit + language-aware feedback
+document.getElementById('submitAnswer').addEventListener('click', async ()=>{
   const code=$editor.value.trim();
   if(!code){$feedbackBox.innerHTML='<strong>Please type your answer first.</strong>';$feedbackBox.className='feedback-box fb-needs';$feedbackBox.classList.remove('hidden');return;}
-
   const t=tasks[curTask];
   const lang=$editorLang.value;
   const keys = lang==='java' ? t.javaKeys : t.pseudoKeys;
   const langLabel = lang==='java' ? 'Java' : 'Pseudocode';
-
-  // Case-sensitive check for Java, case-insensitive for pseudocode
-  const found=[];
-  const missed=[];
+  const found=[], missed=[];
   keys.forEach(k=>{
-    if(lang==='java'){
-      // Java: case-sensitive match
-      if(code.includes(k)) found.push(k);
-      else missed.push(k);
-    } else {
-      // Pseudocode: case-insensitive
-      if(code.toUpperCase().includes(k.toUpperCase())) found.push(k);
-      else missed.push(k);
-    }
+    if(lang==='java'){ if(code.includes(k)) found.push(k); else missed.push(k); }
+    else { if(code.toUpperCase().includes(k.toUpperCase())) found.push(k); else missed.push(k); }
   });
-
   const pct=found.length/keys.length;
-
   let cls,msg;
   if(pct>=0.75){
     cls='fb-good';msg=`<strong>Great work!</strong> Your ${langLabel} answer covers the key concepts.`;
-    saveProgress(curTask,'done',code);
+    progressCache.tasks[curTask] = { status:'done', code, time:Date.now() };
+    await saveTaskProgress(curTask,'done',code);
     $editorStatus.textContent='✓ Completed';$editorStatus.className='editor-status saved';
   }else if(pct>=0.4){
     cls='fb-partial';msg=`<strong>Good start!</strong> Your ${langLabel} answer is on the right track but is missing some elements.`;
-    saveProgress(curTask,'started',code);
+    progressCache.tasks[curTask] = { status:'started', code, time:Date.now() };
+    await saveTaskProgress(curTask,'started',code);
   }else{
     cls='fb-needs';msg=`<strong>Keep going!</strong> Your ${langLabel} answer needs more detail.`;
-    saveProgress(curTask,'started',code);
+    progressCache.tasks[curTask] = { status:'started', code, time:Date.now() };
+    await saveTaskProgress(curTask,'started',code);
   }
-
   let checklist='<ul class="fb-checklist">';
   found.forEach(k=>{checklist+=`<li class="fb-check">Includes: <code>${k}</code></li>`;});
   missed.forEach(k=>{checklist+=`<li class="fb-cross">Missing: <code>${k}</code></li>`;});
   checklist+='</ul>';
-
-  // Add language-specific tips for common issues
-  if(lang==='java' && missed.length>0){
-    const hasUpperCase = missed.some(k => k[0] === k[0].toUpperCase() && k[0] !== k[0].toLowerCase());
-    if(!hasUpperCase){
-      checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">💡 Remember: Java uses <b>camelCase</b> for method and variable names.</p>';
-    }
-  }
-  if(lang==='pseudo' && missed.some(k=>k==='DECLARE')){
-    checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">💡 Remember: Declare all local variables with <b>DECLARE VariableName : DataType</b></p>';
-  }
-
+  if(lang==='java' && missed.length>0){ checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">💡 Remember: Java uses <b>camelCase</b> for method and variable names.</p>'; }
+  if(lang==='pseudo' && missed.some(k=>k==='DECLARE')){ checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">💡 Remember: Declare all local variables with <b>DECLARE VariableName : DataType</b></p>'; }
   $feedbackBox.innerHTML=msg+checklist;
   $feedbackBox.className='feedback-box '+cls;
   $feedbackBox.classList.remove('hidden');
@@ -1024,118 +932,78 @@ document.getElementById('submitAnswer').addEventListener('click',()=>{
 document.getElementById('clearEditor').addEventListener('click',()=>{$editor.value='';updateLineNumbers();$feedbackBox.classList.add('hidden');});
 $tPrev.addEventListener('click',()=>{if(curTask>0){curTask--;renderTask();}});
 $tNext.addEventListener('click',()=>{if(curTask<tasks.length-1){curTask++;renderTask();}});
-renderTask();
 
 
 /* ══════════════════════════════════════════════
-   TEACHER DASHBOARD
+   TEACHER DASHBOARD — reads from Firestore
    ══════════════════════════════════════════════ */
-function refreshDashboard(){
-  const config=LS.get('config');if(!config)return;
-  // Gather all student data
-  const students=[];
-  for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i);
-    if(k.startsWith('fp_progress_')){
-      const email=k.replace('fp_progress_','');
-      if(email!==config.teacherEmail){
-        const prog=JSON.parse(localStorage.getItem(k));
-        const quizRaw=localStorage.getItem('fp_quiz_'+email);
-        const quizData=quizRaw?JSON.parse(quizRaw):{};
-        students.push({email,prog,quizData});
+async function refreshDashboard(){
+  if (!currentUser || currentUser.role !== 'teacher') return;
+
+  const $sum = document.getElementById('dashSummary');
+  const $body = document.getElementById('dashBody');
+  $body.innerHTML = '<tr><td colspan="7" class="dash-loading">Loading from Firebase...</td></tr>';
+
+  try {
+    // Get all user docs (security rules allow teacher to read all)
+    const usersSnap = await db.collection('users').where('role', '==', 'student').get();
+    const students = [];
+
+    for (const userDoc of usersSnap.docs) {
+      const userData = userDoc.data();
+      const progDoc = await db.collection('progress').doc(userDoc.id).get();
+      const prog = progDoc.exists ? progDoc.data() : { tasks: {}, quiz: {} };
+      students.push({ email: userData.email, tasks: prog.tasks || {}, quiz: prog.quiz || {} });
+    }
+
+    const totalTasks = tasks.length;
+    const totalQuiz = quiz.length;
+    let totalDone=0, totalStarted=0, totalQuizCorrect=0, totalQuizAttempts=0;
+
+    students.forEach(s => {
+      Object.values(s.tasks).forEach(v => { if(v.status==='done') totalDone++; else if(v.status==='started') totalStarted++; });
+      Object.values(s.quiz).forEach(v => { if(v.status==='correct') totalQuizCorrect++; totalQuizAttempts += (v.attempts||0); });
+    });
+
+    $sum.innerHTML = `
+      <div class="dash-stat"><div class="ds-num">${students.length}</div><div class="ds-label">Students</div></div>
+      <div class="dash-stat"><div class="ds-num">${totalDone}</div><div class="ds-label">Tasks Done</div></div>
+      <div class="dash-stat"><div class="ds-num">${totalStarted}</div><div class="ds-label">In Progress</div></div>
+      <div class="dash-stat"><div class="ds-num">${totalQuizCorrect}</div><div class="ds-label">Quiz Correct</div></div>
+      <div class="dash-stat"><div class="ds-num">${totalQuizAttempts}</div><div class="ds-label">Quiz Attempts</div></div>`;
+
+    $body.innerHTML = '';
+    if (!students.length) { $body.innerHTML = '<tr><td colspan="7" style="text-align:center;opacity:.5;padding:1.5rem">No students have signed up yet.</td></tr>'; return; }
+
+    students.forEach(s => {
+      let done=0, started=0;
+      for(let i=0;i<totalTasks;i++){ const st=s.tasks[i]?.status; if(st==='done') done++; else if(st==='started') started++; }
+      const notStarted = totalTasks - done - started;
+      let qCorrect=0, qAttempts=0;
+      for(let i=0;i<totalQuiz;i++){ const d=s.quiz[i]; if(d){ if(d.status==='correct') qCorrect++; qAttempts+=(d.attempts||0); }}
+      let dots = '<div class="detail-row">';
+      for(let i=0;i<totalTasks;i++){
+        const st = s.tasks[i]?.status;
+        const cls = st==='done' ? 'dd-done' : st==='started' ? 'dd-prog' : 'dd-none';
+        dots += `<span class="detail-dot ${cls}" title="Task ${i+1}">${i+1}</span>`;
       }
-    }
+      dots += '</div>';
+      $body.innerHTML += `<tr>
+        <td><strong>${s.email}</strong></td>
+        <td><span class="badge-done">${done}</span></td>
+        <td><span class="badge-prog">${started}</span></td>
+        <td><span class="badge-none">${notStarted}</span></td>
+        <td><span class="badge-done">${qCorrect} / ${totalQuiz}</span></td>
+        <td>${qAttempts}</td>
+        <td>${dots}</td></tr>`;
+    });
+  } catch (err) {
+    console.error('Dashboard error:', err);
+    $body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--burg);padding:1rem">Error loading data. Check Firebase console.</td></tr>';
   }
-  // Also pick up students who only have quiz data
-  for(let i=0;i<localStorage.length;i++){
-    const k=localStorage.key(i);
-    if(k.startsWith('fp_quiz_')){
-      const email=k.replace('fp_quiz_','');
-      if(email!==config.teacherEmail && !students.find(s=>s.email===email)){
-        const quizRaw=localStorage.getItem(k);
-        students.push({email,prog:{},quizData:quizRaw?JSON.parse(quizRaw):{}});
-      }
-    }
-  }
-
-  const totalTasks=tasks.length;
-  const totalQuiz=12;
-  let totalDone=0,totalStarted=0,totalQuizCorrect=0,totalQuizAttempts=0;
-  students.forEach(s=>{
-    Object.values(s.prog).forEach(v=>{if(v.status==='done')totalDone++;else if(v.status==='started')totalStarted++;});
-    Object.values(s.quizData).forEach(v=>{if(v.status==='correct')totalQuizCorrect++;totalQuizAttempts+=(v.attempts||0);});
-  });
-
-  const $sum=document.getElementById('dashSummary');
-  $sum.innerHTML=`
-    <div class="dash-stat"><div class="ds-num">${students.length}</div><div class="ds-label">Students</div></div>
-    <div class="dash-stat"><div class="ds-num">${totalDone}</div><div class="ds-label">Tasks Done</div></div>
-    <div class="dash-stat"><div class="ds-num">${totalStarted}</div><div class="ds-label">In Progress</div></div>
-    <div class="dash-stat"><div class="ds-num">${totalQuizCorrect}</div><div class="ds-label">Quiz Qs Correct</div></div>
-    <div class="dash-stat"><div class="ds-num">${totalQuizAttempts}</div><div class="ds-label">Quiz Attempts</div></div>`;
-
-  const $body=document.getElementById('dashBody');$body.innerHTML='';
-  if(!students.length){$body.innerHTML='<tr><td colspan="7" style="text-align:center;opacity:.5;padding:1.5rem">No student data yet.</td></tr>';return;}
-  students.forEach(s=>{
-    let done=0,started=0;
-    for(let i=0;i<totalTasks;i++){const st=s.prog[i]?.status;if(st==='done')done++;else if(st==='started')started++;}
-    const notStarted=totalTasks-done-started;
-
-    let qCorrect=0,qAttempts=0;
-    for(let i=0;i<totalQuiz;i++){const d=s.quizData[i];if(d){if(d.status==='correct')qCorrect++;qAttempts+=(d.attempts||0);}}
-
-    let dots='<div class="detail-row">';
-    for(let i=0;i<totalTasks;i++){
-      const st=s.prog[i]?.status;
-      const cls=st==='done'?'dd-done':st==='started'?'dd-prog':'dd-none';
-      dots+=`<span class="detail-dot ${cls}" title="Task ${i+1}">${i+1}</span>`;
-    }
-    dots+='</div>';
-
-    $body.innerHTML+=`<tr>
-      <td><strong>${s.email}</strong></td>
-      <td><span class="badge-done">${done}</span></td>
-      <td><span class="badge-prog">${started}</span></td>
-      <td><span class="badge-none">${notStarted}</span></td>
-      <td><span class="badge-done">${qCorrect} / ${totalQuiz}</span></td>
-      <td>${qAttempts}</td>
-      <td>${dots}</td></tr>`;
-  });
 }
 
-document.getElementById('dashRefresh').addEventListener('click',refreshDashboard);
+document.getElementById('dashRefresh').addEventListener('click', refreshDashboard);
+document.getElementById('manageWhitelist').addEventListener('click', () => document.getElementById('whitelistEditor').classList.toggle('hidden'));
+document.getElementById('cancelWhitelist').addEventListener('click', () => document.getElementById('whitelistEditor').classList.add('hidden'));
 
-// Whitelist management
-document.getElementById('manageWhitelist').addEventListener('click',()=>{
-  const config=LS.get('config');if(!config)return;
-  document.getElementById('editDomains').value=(config.domains||[]).join(', ');
-  document.getElementById('editEmails').value=(config.emails||[]).join('\n');
-  document.getElementById('whitelistEditor').classList.remove('hidden');
-});
-document.getElementById('cancelWhitelist').addEventListener('click',()=>document.getElementById('whitelistEditor').classList.add('hidden'));
-document.getElementById('saveWhitelist').addEventListener('click',()=>{
-  const config=LS.get('config');
-  config.domains=document.getElementById('editDomains').value.split(',').map(d=>d.trim().toLowerCase()).filter(Boolean);
-  config.emails=document.getElementById('editEmails').value.split('\n').map(e=>e.trim().toLowerCase()).filter(Boolean);
-  LS.set('config',config);
-  document.getElementById('whitelistEditor').classList.add('hidden');
-});
-
-/* ══════════════════════════════════════════════
-   SESSION PERSISTENCE — auto-login on page load
-   ══════════════════════════════════════════════ */
-(function checkSession() {
-  const session = LS.get('session');
-  if (session && session.email && session.role) {
-    const config = LS.get('config');
-    if (session.role === 'teacher' && config && session.email === config.teacherEmail) {
-      currentUser = session;
-      enterApp();
-    } else if (session.role === 'student' && config && isWhitelisted(session.email, config)) {
-      currentUser = session;
-      enterApp();
-    } else {
-      LS.remove('session');
-    }
-  }
-})();
