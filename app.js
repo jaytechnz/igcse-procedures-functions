@@ -22,6 +22,7 @@ const STUDENT_WHITELIST = {
   domains: ['student.cga.school'],
   emails: [
     // 'john.smith@student.cga.school',
+   // Add emails here for exceptions such as non-cga domains
   ],
 };
 
