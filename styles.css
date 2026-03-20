@@ -211,11 +211,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--orange);
-  color: var(--white);
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: .75rem;
 }
 
 .brand-title {
@@ -1871,6 +1866,47 @@ body {
   font-size: .8rem;
   margin-left: .5rem;
 }
+
+/* ════════ WINSTON IMAGES ════════ */
+
+.login-winston {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  margin-bottom: .4rem;
+  transition: opacity .3s;
+}
+
+.chip-winston {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 7px;
+}
+
+.sidebar-winston {
+  display: block;
+  width: 80%;
+  max-width: 160px;
+  margin: auto auto 0;
+  opacity: .85;
+  object-fit: contain;
+  padding-top: 1rem;
+}
+
+.dash-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: .2rem;
+}
+
+.dash-winston {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
 
 .btn-delete-student {
   background: var(--white);

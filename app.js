@@ -54,6 +54,9 @@ document.querySelectorAll('.ltab').forEach(t => {
       ? 'First time? This will create your teacher account.'
       : 'First time? This will create your student account.';
     document.getElementById('classCodeWrap').style.display = loginRole === 'student' ? '' : 'none';
+    document.getElementById('loginWinston').src = loginRole === 'student'
+      ? 'images/winston-wave.png'
+      : 'images/winston-wink-thumbs-up.png';
   });
 });
 
@@ -845,6 +848,7 @@ function buildSide(){
     b.addEventListener('click',()=>{curTask=i;renderTask();});
     $tSide.appendChild(b);
   });
+  $tSide.insertAdjacentHTML('beforeend','<img src="images/winston-magnifying-glass.png" class="sidebar-winston" alt="Winston"/>');
 }
 
 function renderTask(){

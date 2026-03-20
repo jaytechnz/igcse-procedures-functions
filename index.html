@@ -15,7 +15,7 @@
 <div id="loginScreen" class="fullscreen login-bg">
   <div class="login-card">
     <div class="login-header">
-      <span class="chip-logo">0478</span>
+      <img id="loginWinston" src="images/winston-wave.png" class="login-winston" alt="Winston"/>
       <h1>Functions &amp; Parameters</h1>
       <p>Cambridge IGCSE Computer Science</p>
     </div>
@@ -46,7 +46,7 @@
 <header id="topbar">
   <div class="brand">
     <span class="chip-logo">
-      <img src="images/winston.png" style="width:100%; height: auto;" />
+      <img src="images/winston.png" class="chip-winston" alt="Winston"/>
     </span>
     <span class="brand-title">Functions &amp; Parameters</span>
   </div>
@@ -122,7 +122,10 @@
 <!-- ═══════ TEACHER DASHBOARD ═══════ -->
 <section id="view-dashboard" class="view hidden">
   <div class="dash-wrap">
-    <h2 class="dash-title">Student Progress Dashboard</h2>
+    <div class="dash-title-row">
+      <h2 class="dash-title">Student Progress Dashboard</h2>
+      <img src="images/winston-thumbs-up.png" class="dash-winston" alt="Winston"/>
+    </div>
     <div id="classCodeBanner" class="class-code-banner hidden"></div>
     <div class="dash-controls">
       <button class="btn-accent btn-sm" id="dashRefresh">↻ Refresh from Firebase</button>
@@ -155,6 +158,7 @@
         <div class="quiz-score-num" id="quizScoreNum">0 / 12</div>
         <div class="quiz-attempts" id="quizAttempts">Attempts: 0</div>
       </div>
+      <img src="images/winston-magnifying-glass.png" class="sidebar-winston" alt="Winston"/>
     </aside>
     <main class="quiz-main">
       <div class="quiz-q-card" id="quizQCard">
