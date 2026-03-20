@@ -36,7 +36,8 @@ const db = firebase.firestore();
 /* ═══════════════════════════════════════════
    AUTH
    ═══════════════════════════════════════════ */
-let currentUser = null; // {uid, email, role}
+let currentUser = null; // {uid, email, role, classCode?, teacherUid?}
+let creatingAccount = false;
 const loginScreen = document.getElementById('loginScreen');
 const appShell = document.getElementById('appShell');
 let loginRole = 'student';
@@ -52,6 +53,7 @@ document.querySelectorAll('.ltab').forEach(t => {
     document.getElementById('loginHint').textContent = loginRole === 'teacher'
       ? 'First time? This will create your teacher account.'
       : 'First time? This will create your student account.';
+    document.getElementById('classCodeWrap').style.display = loginRole === 'student' ? '' : 'none';
   });
 });
 
@@ -63,6 +65,11 @@ function isStudentWhitelisted(email) {
 }
 
 function showErr(el, msg) { el.textContent = msg; el.classList.remove('hidden'); }
+
+function generateClassCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length: 6}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
 
 // Login button
 document.getElementById('loginBtn').addEventListener('click', async () => {
@@ -90,21 +97,41 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   } catch (signInErr) {
     if (signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-credential') {
       // New user — create account
+      creatingAccount = true;
       try {
-        const cred = await auth.createUserWithEmailAndPassword(email, pass);
-        // Write user doc with role
-        await db.collection('users').doc(cred.user.uid).set({
-          email: email,
-          role: loginRole,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        // Create empty progress doc
-        await db.collection('progress').doc(cred.user.uid).set({
-          tasks: {},
-          quiz: {}
-        });
-        // Auth state listener handles the rest
+        if (loginRole === 'student') {
+          const code = document.getElementById('classCode').value.trim().toUpperCase();
+          if (!code) {
+            creatingAccount = false;
+            spinner.classList.add('hidden');
+            showErr(errEl, 'Enter your class code to create an account.');
+            return;
+          }
+          // Create auth account first (needed to query Firestore)
+          const cred = await auth.createUserWithEmailAndPassword(email, pass);
+          const teacherSnap = await db.collection('users').where('classCode', '==', code).where('role', '==', 'teacher').limit(1).get();
+          if (teacherSnap.empty) {
+            await cred.user.delete();
+            creatingAccount = false;
+            spinner.classList.add('hidden');
+            showErr(errEl, 'Invalid class code. Check with your teacher.');
+            return;
+          }
+          const teacherUid = teacherSnap.docs[0].id;
+          await db.collection('users').doc(cred.user.uid).set({ email, role: 'student', teacherUid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+          await db.collection('progress').doc(cred.user.uid).set({ tasks: {}, quiz: {} });
+          currentUser = { uid: cred.user.uid, email, role: 'student', teacherUid };
+        } else {
+          const cred = await auth.createUserWithEmailAndPassword(email, pass);
+          const classCode = generateClassCode();
+          await db.collection('users').doc(cred.user.uid).set({ email, role: 'teacher', classCode, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+          await db.collection('progress').doc(cred.user.uid).set({ tasks: {}, quiz: {} });
+          currentUser = { uid: cred.user.uid, email, role: 'teacher', classCode };
+        }
+        creatingAccount = false;
+        enterApp();
       } catch (createErr) {
+        creatingAccount = false;
         spinner.classList.add('hidden');
         showErr(errEl, createErr.message);
       }
@@ -120,20 +147,28 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 
 // Firebase auth state listener — fires on login/logout/page load
 auth.onAuthStateChanged(async (user) => {
+  if (creatingAccount) return;
   if (user) {
     try {
       const userDoc = await db.collection('users').doc(user.uid).get();
       if (userDoc.exists) {
-        currentUser = { uid: user.uid, email: user.email, role: userDoc.data().role };
+        const data = userDoc.data();
+        let classCode = data.classCode;
+        if (data.role === 'teacher' && !classCode) {
+          classCode = generateClassCode();
+          await db.collection('users').doc(user.uid).update({ classCode });
+        }
+        currentUser = { uid: user.uid, email: user.email, role: data.role, classCode, teacherUid: data.teacherUid };
       } else {
         // User exists in Auth but not Firestore (shouldn't happen, but handle it)
         const role = isStudentWhitelisted(user.email) ? 'student' : 'teacher';
+        const extra = role === 'teacher' ? { classCode: generateClassCode() } : {};
         await db.collection('users').doc(user.uid).set({
-          email: user.email, role: role,
+          email: user.email, role, ...extra,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         await db.collection('progress').doc(user.uid).set({ tasks: {}, quiz: {} });
-        currentUser = { uid: user.uid, email: user.email, role: role };
+        currentUser = { uid: user.uid, email: user.email, role, ...extra };
       }
       enterApp();
     } catch (err) {
@@ -947,8 +982,10 @@ async function refreshDashboard(){
   $body.innerHTML = '<tr><td colspan="8" class="dash-loading">Loading from Firebase...</td></tr>';
 
   try {
-    // Get all user docs (security rules allow teacher to read all)
-    const usersSnap = await db.collection('users').where('role', '==', 'student').get();
+    document.getElementById('classCodeBanner').innerHTML = `Your class code: <strong>${currentUser.classCode}</strong> — share this with your students`;
+    document.getElementById('classCodeBanner').classList.remove('hidden');
+    // Get students belonging to this teacher
+    const usersSnap = await db.collection('users').where('role', '==', 'student').where('teacherUid', '==', currentUser.uid).get();
     const students = [];
 
     for (const userDoc of usersSnap.docs) {
