@@ -7,14 +7,14 @@
    ★ TEACHER: EDIT THESE TWO SECTIONS ★
    ═══════════════════════════════════════════ */
 
-// 1. Paste your Firebase config here (from Firebase Console → Project Settings → Your Apps)
+// 1.Firebase config settings (from Firebase Console → Project Settings → Your Apps)
 const FIREBASE_CONFIG = {
-  apiKey: "PASTE_YOUR_API_KEY_HERE",
-  authDomain: "PASTE_YOUR_AUTH_DOMAIN_HERE",
-  projectId: "PASTE_YOUR_PROJECT_ID_HERE",
-  storageBucket: "PASTE_YOUR_STORAGE_BUCKET_HERE",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID_HERE",
-  appId: "PASTE_YOUR_APP_ID_HERE"
+  apiKey: "AIzaSyDXNLbkYD3z2irF42NO1WmBcxxp7Cfqw54",
+  authDomain: "igcse-modularity.firebaseapp.com",
+  projectId: "igcse-modularity",
+  storageBucket: "igcse-modularity.firebasestorage.app",
+  messagingSenderId: "702420091115",
+  appId: "1:702420091115:web:5c635cbd3bac9b0db0beae"
 };
 
 // 2. Student whitelist — only these emails/domains can create student accounts
