@@ -119,12 +119,13 @@
     <h2 class="dash-title">Student Progress Dashboard</h2>
     <div class="dash-controls">
       <button class="btn-accent btn-sm" id="dashRefresh">↻ Refresh from Firebase</button>
+      <button class="btn-sm" id="deleteSelected" disabled>Delete Selected</button>
       <button class="btn-sm" id="manageWhitelist">Manage Whitelist</button>
     </div>
     <div class="dash-summary" id="dashSummary"></div>
     <div class="dash-table-wrap">
       <table class="dash-table" id="dashTable">
-        <thead><tr><th>Student</th><th>Tasks Done</th><th>Tasks In Progress</th><th>Tasks Not Started</th><th>Quiz Score</th><th>Quiz Attempts</th><th>Task Details</th><th>Actions</th></tr></thead>
+        <thead><tr><th><input type="checkbox" id="selectAll" title="Select all"></th><th>Student</th><th>Tasks Done</th><th>Tasks In Progress</th><th>Tasks Not Started</th><th>Quiz Score</th><th>Quiz Attempts</th><th>Task Details</th></tr></thead>
         <tbody id="dashBody"></tbody>
       </table>
     </div>

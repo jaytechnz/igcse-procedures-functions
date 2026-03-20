@@ -991,31 +991,47 @@ async function refreshDashboard(){
       }
       dots += '</div>';
       $body.innerHTML += `<tr>
+        <td><input type="checkbox" class="student-check" data-uid="${s.uid}" data-email="${s.email}"></td>
         <td><strong>${s.email}</strong></td>
         <td><span class="badge-done">${done}</span></td>
         <td><span class="badge-prog">${started}</span></td>
         <td><span class="badge-none">${notStarted}</span></td>
         <td><span class="badge-done">${qCorrect} / ${totalQuiz}</span></td>
         <td>${qAttempts}</td>
-        <td>${dots}</td>
-        <td><button class="btn-delete-student" data-uid="${s.uid}" data-email="${s.email}">Delete</button></td></tr>`;
+        <td>${dots}</td></tr>`;
     });
   } catch (err) {
     console.error('Dashboard error:', err);
-    $body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--burg);padding:1rem">Error loading data. Check Firebase console.</td></tr>';
+    $body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--burg);padding:1rem">Error loading data. Check Firebase console.</td></tr>';
   }
 }
 
 document.getElementById('dashRefresh').addEventListener('click', refreshDashboard);
 
-document.getElementById('dashBody').addEventListener('click', async (e) => {
-  const btn = e.target.closest('.btn-delete-student');
-  if (!btn) return;
-  const uid = btn.dataset.uid;
-  const email = btn.dataset.email;
-  if (!confirm(`Delete all data for ${email}? This cannot be undone.`)) return;
-  await db.collection('users').doc(uid).delete();
-  await db.collection('progress').doc(uid).delete();
+function updateDeleteBtn() {
+  const anyChecked = document.querySelectorAll('.student-check:checked').length > 0;
+  document.getElementById('deleteSelected').disabled = !anyChecked;
+}
+
+document.getElementById('selectAll').addEventListener('change', (e) => {
+  document.querySelectorAll('.student-check').forEach(cb => cb.checked = e.target.checked);
+  updateDeleteBtn();
+});
+
+document.getElementById('dashBody').addEventListener('change', (e) => {
+  if (e.target.classList.contains('student-check')) updateDeleteBtn();
+});
+
+document.getElementById('deleteSelected').addEventListener('click', async () => {
+  const checked = [...document.querySelectorAll('.student-check:checked')];
+  if (!checked.length) return;
+  const names = checked.map(cb => cb.dataset.email).join('\n');
+  if (!confirm(`Delete data for ${checked.length} student(s)?\n\n${names}\n\nThis cannot be undone.`)) return;
+  for (const cb of checked) {
+    await db.collection('users').doc(cb.dataset.uid).delete();
+    await db.collection('progress').doc(cb.dataset.uid).delete();
+  }
+  document.getElementById('selectAll').checked = false;
   refreshDashboard();
 });
 document.getElementById('manageWhitelist').addEventListener('click', () => document.getElementById('whitelistEditor').classList.toggle('hidden'));
