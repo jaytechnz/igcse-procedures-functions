@@ -834,7 +834,6 @@ const tasks=[
 let curTask=0;
 const $tCard=document.getElementById('taskCard'),$tPos=document.getElementById('taskPos'),$tPrev=document.getElementById('prevTask'),$tNext=document.getElementById('nextTask'),$tFill=document.getElementById('taskFill'),$tSide=document.getElementById('taskSide');
 const $editor=document.getElementById('codeEditor'),$lineNums=document.getElementById('lineNumbers'),$feedbackBox=document.getElementById('feedbackBox'),$editorStatus=document.getElementById('editorStatus');
-const $editorLang=document.getElementById('editorLang');
 
 function buildSide(){
   $tSide.innerHTML='';
@@ -873,7 +872,7 @@ const PSEUDO_INDENT_KW = /^(PROCEDURE|FUNCTION|IF|ELSE|FOR|WHILE|REPEAT|CASE)\b/
 const JAVA_INDENT_CHARS = /[{(]\s*$/;
 
 $editor.addEventListener('keydown',e=>{
-  const lang = $editorLang.value;
+  const lang = $editor.value.includes('{') ? 'java' : 'pseudo';
   if(e.key==='Tab'){
     e.preventDefault();
     const s=$editor.selectionStart,end=$editor.selectionEnd;
@@ -929,20 +928,27 @@ function autoSave(){
   }
 }
 
-// Submit + language-aware feedback
+// Submit feedback — scores against both key sets, uses whichever is higher
 document.getElementById('submitAnswer').addEventListener('click', async ()=>{
   const code=$editor.value.trim();
   if(!code){$feedbackBox.innerHTML='<strong>Please type your answer first.</strong>';$feedbackBox.className='feedback-box fb-needs';$feedbackBox.classList.remove('hidden');return;}
   const t=tasks[curTask];
-  const lang=$editorLang.value;
-  const keys = lang==='java' ? t.javaKeys : t.pseudoKeys;
-  const langLabel = lang==='java' ? 'Java' : 'Pseudocode';
-  const found=[], missed=[];
-  keys.forEach(k=>{
-    if(lang==='java'){ if(code.includes(k)) found.push(k); else missed.push(k); }
-    else { if(code.toUpperCase().includes(k.toUpperCase())) found.push(k); else missed.push(k); }
-  });
-  const pct=found.length/keys.length;
+
+  function scoreKeys(keys, caseSensitive) {
+    const found=[], missed=[];
+    keys.forEach(k=>{
+      if(caseSensitive){ if(code.includes(k)) found.push(k); else missed.push(k); }
+      else { if(code.toUpperCase().includes(k.toUpperCase())) found.push(k); else missed.push(k); }
+    });
+    return { found, missed, pct: found.length / keys.length };
+  }
+
+  const pseudo = scoreKeys(t.pseudoKeys, false);
+  const java   = scoreKeys(t.javaKeys,   true);
+  const usePseudo = pseudo.pct >= java.pct;
+  const { found, missed, pct } = usePseudo ? pseudo : java;
+  const langLabel = usePseudo ? 'Pseudocode' : 'Java';
+
   let cls,msg;
   if(pct>=0.75){
     cls='fb-good';msg=`<strong>Great work!</strong> Your ${langLabel} answer covers the key concepts.`;
@@ -954,7 +960,7 @@ document.getElementById('submitAnswer').addEventListener('click', async ()=>{
     progressCache.tasks[curTask] = { status:'started', code, time:Date.now() };
     await saveTaskProgress(curTask,'started',code);
   }else{
-    cls='fb-needs';msg=`<strong>Keep going!</strong> Your ${langLabel} answer needs more detail.`;
+    cls='fb-needs';msg=`<strong>Keep going!</strong> Your answer needs more detail.`;
     progressCache.tasks[curTask] = { status:'started', code, time:Date.now() };
     await saveTaskProgress(curTask,'started',code);
   }
@@ -962,8 +968,8 @@ document.getElementById('submitAnswer').addEventListener('click', async ()=>{
   found.forEach(k=>{checklist+=`<li class="fb-check">Includes: <code>${k}</code></li>`;});
   missed.forEach(k=>{checklist+=`<li class="fb-cross">Missing: <code>${k}</code></li>`;});
   checklist+='</ul>';
-  if(lang==='java' && missed.length>0){ checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">Remember: Java uses <b>camelCase</b> for method and variable names.</p>'; }
-  if(lang==='pseudo' && missed.some(k=>k==='DECLARE')){ checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">Remember: Declare all local variables with <b>DECLARE VariableName : DataType</b></p>'; }
+  if(!usePseudo && missed.length>0){ checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">Remember: Java uses <b>camelCase</b> for method and variable names.</p>'; }
+  if(usePseudo && missed.some(k=>k==='DECLARE')){ checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">Remember: Declare all local variables with <b>DECLARE VariableName : DataType</b></p>'; }
   $feedbackBox.innerHTML=msg+checklist;
   $feedbackBox.className='feedback-box '+cls;
   $feedbackBox.classList.remove('hidden');
