@@ -1927,6 +1927,15 @@ body {
   color: var(--white);
 }
 
-footer {
+.login-footer {
   text-align: center;
+  margin-top: 1.2rem;
+  padding-top: .8rem;
+  border-top: 1px solid var(--silver);
+}
+
+.login-footer p {
+  font-size: .72rem;
+  color: var(--navy);
+  opacity: .4;
 }
