@@ -349,3 +349,21 @@ body{font-family:'Nunito',sans-serif;background:var(--burg);color:var(--white);m
 .login-hint{font-size:.78rem;color:var(--navy);opacity:.4;margin-top:.4rem;line-height:1.4}
 .login-spinner{text-align:center;padding:.5rem;font-weight:700;font-size:.9rem;color:var(--burg)}
 .dash-loading{text-align:center;padding:2rem;font-weight:600;color:var(--navy);opacity:.5}
+
+.btn-delete-student{ /* Teacher dashboard - ability to remove students */
+  background:var(--white);
+  color:var(--burg);
+  border:2px solid var(--burg);
+  width: 150px;
+  padding: 1rem 1rem;
+  border-radius:7px;
+  font-family:'Nunito',sans-serif;
+  font-weight:700;
+  font-size:.85rem;
+  cursor:pointer;transition:.2s
+}
+
+.btn-delete-student:hover{
+  background:var(--burg);
+  color:var(--white);
+}
