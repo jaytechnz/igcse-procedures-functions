@@ -22,7 +22,7 @@ const STUDENT_WHITELIST = {
   domains: ['student.cga.school'],
   emails: [
     // 'john.smith@student.cga.school',
-   // Add emails here for exceptions such as non-cga domains
+    // Add emails here for exceptions such as non-cga domains
   ],
 };
 
@@ -944,7 +944,7 @@ async function refreshDashboard(){
 
   const $sum = document.getElementById('dashSummary');
   const $body = document.getElementById('dashBody');
-  $body.innerHTML = '<tr><td colspan="7" class="dash-loading">Loading from Firebase...</td></tr>';
+  $body.innerHTML = '<tr><td colspan="8" class="dash-loading">Loading from Firebase...</td></tr>';
 
   try {
     // Get all user docs (security rules allow teacher to read all)
@@ -955,7 +955,7 @@ async function refreshDashboard(){
       const userData = userDoc.data();
       const progDoc = await db.collection('progress').doc(userDoc.id).get();
       const prog = progDoc.exists ? progDoc.data() : { tasks: {}, quiz: {} };
-      students.push({ email: userData.email, tasks: prog.tasks || {}, quiz: prog.quiz || {} });
+      students.push({ uid: userDoc.id, email: userData.email, tasks: prog.tasks || {}, quiz: prog.quiz || {} });
     }
 
     const totalTasks = tasks.length;
@@ -975,7 +975,7 @@ async function refreshDashboard(){
       <div class="dash-stat"><div class="ds-num">${totalQuizAttempts}</div><div class="ds-label">Quiz Attempts</div></div>`;
 
     $body.innerHTML = '';
-    if (!students.length) { $body.innerHTML = '<tr><td colspan="7" style="text-align:center;opacity:.5;padding:1.5rem">No students have signed up yet.</td></tr>'; return; }
+    if (!students.length) { $body.innerHTML = '<tr><td colspan="8" style="text-align:center;opacity:.5;padding:1.5rem">No students have signed up yet.</td></tr>'; return; }
 
     students.forEach(s => {
       let done=0, started=0;
@@ -997,7 +997,8 @@ async function refreshDashboard(){
         <td><span class="badge-none">${notStarted}</span></td>
         <td><span class="badge-done">${qCorrect} / ${totalQuiz}</span></td>
         <td>${qAttempts}</td>
-        <td>${dots}</td></tr>`;
+        <td>${dots}</td>
+        <td><button class="btn-delete-student" data-uid="${s.uid}" data-email="${s.email}">Delete</button></td></tr>`;
     });
   } catch (err) {
     console.error('Dashboard error:', err);
@@ -1006,6 +1007,17 @@ async function refreshDashboard(){
 }
 
 document.getElementById('dashRefresh').addEventListener('click', refreshDashboard);
+
+document.getElementById('dashBody').addEventListener('click', async (e) => {
+  const btn = e.target.closest('.btn-delete-student');
+  if (!btn) return;
+  const uid = btn.dataset.uid;
+  const email = btn.dataset.email;
+  if (!confirm(`Delete all data for ${email}? This cannot be undone.`)) return;
+  await db.collection('users').doc(uid).delete();
+  await db.collection('progress').doc(uid).delete();
+  refreshDashboard();
+});
 document.getElementById('manageWhitelist').addEventListener('click', () => document.getElementById('whitelistEditor').classList.toggle('hidden'));
 document.getElementById('cancelWhitelist').addEventListener('click', () => document.getElementById('whitelistEditor').classList.add('hidden'));
 
