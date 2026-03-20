@@ -100,35 +100,34 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   } catch (signInErr) {
     if (signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-credential') {
       // New user — create account
-      creatingAccount = true;
       try {
         if (loginRole === 'student') {
           const code = document.getElementById('classCode').value.trim().toUpperCase();
           if (!code) {
-            creatingAccount = false;
             spinner.classList.add('hidden');
             showErr(errEl, 'Enter your class code to create an account.');
             return;
           }
-          // Create auth account first (needed to query Firestore)
-          const cred = await auth.createUserWithEmailAndPassword(email, pass);
-          const teacherSnap = await db.collection('users').where('classCode', '==', code).where('role', '==', 'teacher').limit(1).get();
-          if (teacherSnap.empty) {
-            await cred.user.delete();
-            creatingAccount = false;
+          // Validate class code BEFORE creating auth account (no token needed)
+          const codeDoc = await db.collection('classCodes').doc(code).get();
+          if (!codeDoc.exists) {
             spinner.classList.add('hidden');
             showErr(errEl, 'Invalid class code. Check with your teacher.');
             return;
           }
-          const teacherUid = teacherSnap.docs[0].id;
+          const teacherUid = codeDoc.data().teacherUid;
+          creatingAccount = true;
+          const cred = await auth.createUserWithEmailAndPassword(email, pass);
           await db.collection('users').doc(cred.user.uid).set({ email, role: 'student', teacherUid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
           await db.collection('progress').doc(cred.user.uid).set({ tasks: {}, quiz: {} });
           currentUser = { uid: cred.user.uid, email, role: 'student', teacherUid };
         } else {
+          creatingAccount = true;
           const cred = await auth.createUserWithEmailAndPassword(email, pass);
           const classCode = generateClassCode();
           await db.collection('users').doc(cred.user.uid).set({ email, role: 'teacher', classCode, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
           await db.collection('progress').doc(cred.user.uid).set({ tasks: {}, quiz: {} });
+          await db.collection('classCodes').doc(classCode).set({ teacherUid: cred.user.uid });
           currentUser = { uid: cred.user.uid, email, role: 'teacher', classCode };
         }
         creatingAccount = false;
@@ -157,9 +156,13 @@ auth.onAuthStateChanged(async (user) => {
       if (userDoc.exists) {
         const data = userDoc.data();
         let classCode = data.classCode;
-        if (data.role === 'teacher' && !classCode) {
-          classCode = generateClassCode();
-          await db.collection('users').doc(user.uid).update({ classCode });
+        if (data.role === 'teacher') {
+          if (!classCode) {
+            classCode = generateClassCode();
+            await db.collection('users').doc(user.uid).update({ classCode });
+          }
+          // Ensure classCodes entry exists (backfills existing teachers)
+          await db.collection('classCodes').doc(classCode).set({ teacherUid: user.uid });
         }
         currentUser = { uid: user.uid, email: user.email, role: data.role, classCode, teacherUid: data.teacherUid };
       } else {
