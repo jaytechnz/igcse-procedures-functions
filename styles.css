@@ -1628,6 +1628,7 @@ body {
   user-select: none;
   overflow: hidden;
   flex-shrink: 0;
+  white-space: pre;
 }
 
 #codeEditor {
