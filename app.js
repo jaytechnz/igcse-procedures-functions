@@ -423,7 +423,7 @@ function loadDemo(idx) {
   if(sc.noInteraction) setTimeout(()=>{
     $outputStrip.classList.remove('hidden');
     $outputText.textContent=sc.output;
-    $instr.textContent='🎉 '+sc.explain;
+    $instr.textContent=sc.explain;
     if(scF && scF.noInteraction){
       $outputText.textContent = sc.output;
     }
@@ -576,7 +576,7 @@ function checkBothComplete(){
   if(procDone && funcDone){
     $outputStrip.classList.remove('hidden');
     $outputText.textContent = sc.output;
-    $instr.textContent='🎉 Both examples complete! ' + sc.explain;
+    $instr.textContent='Both examples complete! ' + sc.explain;
     confetti($confetti);
   } else if(procDone && !funcDone){
     $instr.textContent='✓ Procedure done! Now complete the Function example below.';
@@ -962,8 +962,8 @@ document.getElementById('submitAnswer').addEventListener('click', async ()=>{
   found.forEach(k=>{checklist+=`<li class="fb-check">Includes: <code>${k}</code></li>`;});
   missed.forEach(k=>{checklist+=`<li class="fb-cross">Missing: <code>${k}</code></li>`;});
   checklist+='</ul>';
-  if(lang==='java' && missed.length>0){ checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">💡 Remember: Java uses <b>camelCase</b> for method and variable names.</p>'; }
-  if(lang==='pseudo' && missed.some(k=>k==='DECLARE')){ checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">💡 Remember: Declare all local variables with <b>DECLARE VariableName : DataType</b></p>'; }
+  if(lang==='java' && missed.length>0){ checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">Remember: Java uses <b>camelCase</b> for method and variable names.</p>'; }
+  if(lang==='pseudo' && missed.some(k=>k==='DECLARE')){ checklist+='<p style="margin-top:.4rem;font-size:.85rem;opacity:.7">Remember: Declare all local variables with <b>DECLARE VariableName : DataType</b></p>'; }
   $feedbackBox.innerHTML=msg+checklist;
   $feedbackBox.className='feedback-box '+cls;
   $feedbackBox.classList.remove('hidden');
