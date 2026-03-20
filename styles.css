@@ -1890,3 +1890,7 @@ body {
   background: var(--burg);
   color: var(--white);
 }
+
+footer {
+  text-align: center;
+}
