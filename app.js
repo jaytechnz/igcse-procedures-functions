@@ -727,7 +727,7 @@ const tasks=[
 {t:'Predict the Output',d:'easy',
   pseudoKeys:['14','ShowDouble','OUTPUT','CALL'],
   javaKeys:['14','showDouble','System.out.println','void'],
-  b:`What does this output?\n<pre>PROCEDURE ShowDouble(X : INTEGER)\n    OUTPUT X * 2\nENDPROCEDURE\n\nCALL ShowDouble(7)</pre>\nRewrite in <b>Java</b> using correct naming conventions.\n<div class="task-hint">💡 The output is 14. In Java, use camelCase: <code>showDouble</code>.</div>`},
+  b:`(a) What does this output?\n<pre>PROCEDURE ShowDouble(X : INTEGER)\n    OUTPUT X * 2\nENDPROCEDURE\n\nCALL ShowDouble(7)</pre>\n(b) Rewrite in <b>Java</b> using correct naming conventions.\n<div class="task-hint">💡 In Java, use camelCase: <code>showDouble</code>.</div>`},
 
 {t:'Fill in the Blanks',d:'easy',
   pseudoKeys:['Count','5'],
