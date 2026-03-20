@@ -28,6 +28,10 @@
       <input type="email" id="loginEmail" placeholder="firstName.lastName@student.cga.school" autocomplete="email"/>
       <label>Password</label>
       <input type="password" id="loginPass" placeholder="Your password"/>
+      <div id="classCodeWrap">
+        <label>Class Code <span style="font-weight:400;opacity:.5">(first sign-in only)</span></label>
+        <input type="text" id="classCode" placeholder="e.g. A3F9K2" autocomplete="off" maxlength="8" style="text-transform:uppercase"/>
+      </div>
       <p class="login-hint" id="loginHint">First time? Entering your details will create your account.</p>
       <button class="btn-login" id="loginBtn">Sign In</button>
       <div class="login-error hidden" id="loginError"></div>
@@ -117,6 +121,7 @@
 <section id="view-dashboard" class="view hidden">
   <div class="dash-wrap">
     <h2 class="dash-title">Student Progress Dashboard</h2>
+    <div id="classCodeBanner" class="class-code-banner hidden"></div>
     <div class="dash-controls">
       <button class="btn-accent btn-sm" id="dashRefresh">↻ Refresh from Firebase</button>
       <button class="btn-sm" id="deleteSelected" disabled>Delete Selected</button>
@@ -206,6 +211,11 @@
     </main>
   </div>
 </section>
+
+<footer>
+  <h5>&copy Crimson Global Academy 2026</br>
+  Cambridge IGCSE Computer Science 0478</h5>
+</footer>
 
 </div><!-- /appShell -->
 
