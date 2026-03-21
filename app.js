@@ -775,7 +775,7 @@ const tasks=[
   <p>
   Write two calls for two different triangles (one with 5 rows and one with 10 rows).
   </p>
-  <p>Write in either CIE pseudocode.</p><div class="task-hint">💡 Pseudocode: Use <code>Rows</code> and <code>Hashes</code> for your loop counters.<br>`},
+  <p>Write your procedure and CALL statements in <code>pseudocode</code>.</p><div class="task-hint">💡 Pseudocode: Use <code>Rows</code> and <code>Hashes</code> for your loop counters.<br>`},
 
   /* Task 8 */
 {t:'Write a Function',d:'medium',
