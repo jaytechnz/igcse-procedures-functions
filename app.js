@@ -722,55 +722,83 @@ document.getElementById('quizNext').addEventListener('click', () => { if (curQ <
    STUDENT TASKS + CODE EDITOR
    ══════════════════════════════════════════════ */
 const tasks=[
+  /* Task 1 */
 {t:'Identify the Parts',d:'easy',
   pseudoKeys:['Greet','Name','Anika','STRING'],
   javaKeys:['greet','name','Anika','String'],
-  b:`Look at this code:\n<pre>PROCEDURE Greet(Name : STRING)\n    OUTPUT "Hello, " &amp; Name\nENDPROCEDURE\n\nCALL Greet("Anika")</pre>\nWrite down: <b>(a)</b> the procedure name, <b>(b)</b> the parameter, <b>(c)</b> the argument, <b>(d)</b> the data type.\n<div class="task-hint">💡 The parameter is in the definition brackets. The argument is in the call brackets.</div>`},
+  b:`Look at this code:\n<pre>PROCEDURE Greet(Name : STRING)\n    OUTPUT "Hello, " &amp; Name\nENDPROCEDURE\n\nCALL Greet("Anika")</pre>\nWrite down: <b>(a)</b> the procedure name, <b>(b)</b> the parameter, <b>(c)</b> the argument, <b>(d)</b> the data type.`},
 
+  /* Task 2 */
 {t:'Predict the Output',d:'easy',
   pseudoKeys:['14','ShowDouble','OUTPUT','CALL'],
   javaKeys:['14','showDouble','System.out.println','void'],
   b:`(a) What does this output?\n<pre>PROCEDURE ShowDouble(X : INTEGER)\n    OUTPUT X * 2\nENDPROCEDURE\n\nCALL ShowDouble(7)</pre>\n(b) Rewrite in <b>Java</b> using correct naming conventions.\n<div class="task-hint">💡 In Java, use camelCase: <code>showDouble</code>.</div>`},
 
+  /* Task 3 */
 {t:'Fill in the Blanks',d:'easy',
   pseudoKeys:['Count','5'],
   javaKeys:['count','5','printStars','}'],
   b:`Complete the gaps so the procedure prints 5 stars:\n<pre>PROCEDURE PrintStars(______ : INTEGER)\n    FOR I ← 1 TO Count\n        OUTPUT "*"\n    NEXT I\nENDPROCEDURE\n\nCALL PrintStars(______)</pre>\n<div class="task-hint">💡 The parameter name must match what's used in the loop.</div>`},
 
+  /* Task 4 */
 {t:'Spot the Error',d:'easy',
-  pseudoKeys:['INTEGER','type','mismatch','15','number'],
-  javaKeys:['int','type','mismatch','15','number'],
-  b:`Find and fix the error:\n<pre>PROCEDURE SayAge(Age : INTEGER)\n    OUTPUT "You are " &amp; Age &amp; " years old"\nENDPROCEDURE\n\nCALL SayAge("fifteen")</pre>\n<div class="task-hint">💡 Compare the parameter's data type with the argument.</div>`},
+  pseudoKeys:['INTEGER','STRING','type','mismatch','15','comma','concatenation'],
+  javaKeys:['int','String','type','mismatch','15'],
+  b:`This code has <b>two errors</b>. Find and fix both:\n<pre>PROCEDURE SayAge(Age : INTEGER)\n    OUTPUT "You are " &amp; Age &amp; " years old"\nENDPROCEDURE\n\nCALL SayAge("fifteen")</pre>\n<b>(a)</b> What is wrong with the argument in the CALL statement? Fix it.<br><b>(b)</b> What is wrong with the OUTPUT line? Rewrite it correctly, replacing <code>&amp;</code> with commas.\n<div class="task-hint">💡 Error 1: <code>"fifteen"</code> is a STRING but <code>Age</code> expects an INTEGER — pass a number, e.g. <code>15</code>.<br>Error 2: <code>&amp;</code> is for string concatenation only — it cannot be used with an INTEGER. Use commas: <code>OUTPUT "You are ", Age, " years old"</code></div>`},
 
+  /* Task 5 */
 {t:'Write a Call',d:'easy',
   pseudoKeys:['DisplayMessage','Well done','3','CALL'],
   javaKeys:['displayMessage','Well done','3'],
-  b:`Given:\n<pre>PROCEDURE DisplayMessage(Msg : STRING, Times : INTEGER)\n    DECLARE I : INTEGER\n    FOR I ← 1 TO Times\n        OUTPUT Msg\n    NEXT I\nENDPROCEDURE</pre>\nWrite a call that displays <code>"Well done!"</code> three times. Then rewrite in <b>Java</b>.\n<div class="task-hint">💡 In Java, use camelCase: <code>displayMessage("Well done!", 3);</code></div>`},
+  b:`Given:\n<pre>PROCEDURE DisplayMessage(Msg : STRING, Times : INTEGER)\n    DECLARE i : INTEGER\n    FOR i ← 1 TO Times\n        OUTPUT Msg\n    NEXT i\nENDPROCEDURE</pre>\nWrite a call that displays <code>"Well done!"</code> three times. Then rewrite in <b>Java</b>.\n<div class="task-hint">💡 In Java, use camelCase: <code>displayMessage("Well done!", 3);</code></div>`},
 
+  /* Task 6 */
 {t:'Procedure vs Function',d:'easy',
   pseudoKeys:['PROCEDURE','FUNCTION','RETURN','ENDPROCEDURE','ENDFUNCTION'],
-  javaKeys:['void','return','int','static'],
-  b:`<b>(a)</b> Explain the difference between a procedure and a function.<br><b>(b)</b> Write a simple procedure in CIE pseudocode and Java.<br><b>(c)</b> Write a simple function in CIE pseudocode and Java.\n<div class="task-hint">💡 In pseudocode: PROCEDURE/ENDPROCEDURE, FUNCTION/ENDFUNCTION with RETURN. In Java: <code>void</code> = procedure, typed return = function. Use camelCase for method names.</div>`},
+  javaKeys:['void','return','int','static','public'],
+  b:`<b>(a)</b> Explain the difference between a procedure and a function.<br><b>(b)</b> Write a procedure in CIE pseudocode to output the square of two parameters.<br><b>(c)</b> Write a function in Java to return the higher of two parameters, or the first parameter if they are the same.\n<div class="task-hint">💡 In pseudocode: PROCEDURE/ENDPROCEDURE, FUNCTION/ENDFUNCTION with RETURN. In Java: <code>void</code> = procedure, typed <code>return</code> = function. Use camelCase for method names in Java.</div>`},
 
+  /* Task 7 */
 {t:'Write a Procedure',d:'medium',
-  pseudoKeys:['PROCEDURE','PrintBorder','Length','DECLARE','FOR','ENDPROCEDURE','OUTPUT','CALL'],
-  javaKeys:['void','printBorder','length','for','System.out'],
-  b:`Write a procedure <code>PrintBorder(Length : INTEGER)</code> that outputs a line of <code>Length</code> dashes. Declare any local variables used. Write two calls (length 10 and 25).\n\nWrite in CIE pseudocode <b>or</b> Java (select language above).\n<div class="task-hint">💡 Pseudocode: Use <code>DECLARE I : INTEGER</code> for the loop counter.<br>Java: <code>public static void printBorder(int length)</code></div>`},
+  pseudoKeys:['PROCEDURE','DisplayTriangle','NumRows','DECLARE','FOR', 'NEXT', 'ENDPROCEDURE','OUTPUT','CALL'],
+  javaKeys:['void','displayTriangle','numRows','for','System.out'],
+  b:`Write a procedure <code>DisplayTriangle()</code> that takes one integer parameter, <code>NumRows</code>; this is the number of rows that will make up a right-angled triangle of # symbols.</br>You will need to use <strong>two</strong> loops:
+  <ul>
+  <li>Outer FOR loop: number of rows</li>
+  <li>Nested FOR loop: number of # symbols on each row</li>
+  </ul>
 
+  Declare any local variables used, including your loop counters.
+  <p>
+  Write two calls for two different triangles (one with 5 rows and one with 10 rows).
+  </p>
+  <p>Write in either CIE pseudocode.</p><div class="task-hint">💡 Pseudocode: Use <code>Rows</code> and <code>Hashes</code> for your loop counters.<br>`},
+
+  /* Task 8 */
 {t:'Write a Function',d:'medium',
-  pseudoKeys:['FUNCTION','AddVAT','Price','RETURN','1.15','230','ENDFUNCTION'],
-  javaKeys:['double','addVAT','price','return','1.15','230'],
-  b:`Write <code>AddVAT(Price : REAL) RETURNS REAL</code> that adds 15% VAT.<br>What does <code>Total ← AddVAT(200.00)</code> give?\n\nWrite in CIE pseudocode <b>or</b> Java (select language above).\n<div class="task-hint">💡 Pseudocode: <code>RETURN Price * 1.15</code><br>Java: <code>public static double addVAT(double price)</code></div>`},
+  pseudoKeys:['FUNCTION','AddGST','Price','RETURN','1.15','230','ENDFUNCTION'],
+  javaKeys:['double','addGST','price','return','1.15','230'],
+  b:`<p>(a) Write a function, AddGST(), in <strong>pseudocode</strong> that takes a REAL parameter, <code>Price</code>.</br>
+  Your function should return the updated Price after 15% tax has been added to the parameter's value.</p>
+  <p>
+  (b) Re-write your pseudocode function in <code>Java</code>.
+  </p>
+  <div class="task-hint">💡 Pseudocode: Multilpy the parameter by 1.15</div>`},
 
+  /* Task 9 */
 {t:'Two-Parameter Function',d:'medium',
   pseudoKeys:['FUNCTION','Power','Base','Exponent','RETURN','ENDFUNCTION','DECLARE','Result'],
   javaKeys:['int','power','base','exponent','return','result'],
-  b:`Write <code>Power(Base : INTEGER, Exponent : INTEGER) RETURNS INTEGER</code> using a loop. Declare all local variables. Show what <code>Power(3, 4)</code> returns.\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Result : INTEGER</code> and <code>DECLARE I : INTEGER</code><br>Java: <code>public static int power(int base, int exponent)</code></div>`},
+  b:`(a) Write a <code>pseudocode</code function called <code>Power()</code> that takes <strong>two</strong> integer parameters, <code>Base</code> and <code>Exponent</code>
+  <p>(b) Write the values returned after 4 and 3 are passed, and then after 7 and 2 are passed.
+  <div class="task-hint">💡 Your return value should be in a variable called <code>Result</code>.</div>`},
 
+  /* Task 10 */
 {t:'Function Calling a Procedure',d:'medium',
   pseudoKeys:['FUNCTION','PROCEDURE','CALL','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','CalculateTotal','PrintReceipt'],
   javaKeys:['double','void','return','calculateTotal','printReceipt','println'],
-  b:`Write a program with two modules:\n<ol><li>A <b>function</b> <code>CalculateTotal(Price : REAL, Qty : INTEGER) RETURNS REAL</code> that returns <code>Price * Qty</code></li>\n<li>A <b>procedure</b> <code>PrintReceipt(Item : STRING, Price : REAL, Qty : INTEGER)</code> that declares a local variable <code>Total</code>, calls <code>CalculateTotal</code>, and outputs the item name and total cost</li></ol>\nCall <code>PrintReceipt("Notebook", 3.50, 4)</code>. What is the output?\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Total : REAL</code> inside the procedure.<br>Java: <code>double total = calculateTotal(price, qty);</code></div>`},
+  b:`Write a program with two modules:\n<ol><li>A <b>function</b> <code>CalculateTotal(Price : REAL, Qty : INTEGER) RETURNS REAL</code> that returns <code>Price * Qty</code></li>\n<li>A <b>procedure</b> <code>PrintReceipt(Item : STRING, Price : REAL, Qty : INTEGER)</code> that declares a local variable <code>Total</code>, calls <code>CalculateTotal</code>, and outputs the item name and total cost</li></ol>\nAfter the two modules are written, write a statement that calls PrintReceipt with the values "Notebook", 3.50 and 4.</br>Write what would be returned. 
+  <div class="task-hint">💡 Pseudocode: <code>DECLARE Total : REAL</code> inside the procedure.<br></div>`},
 
 {t:'Argument Order',d:'medium',
   pseudoKeys:['6','-6','position','first','second'],
@@ -870,8 +898,10 @@ function renderTask(){
   const a=$tSide.querySelector('.active');if(a)a.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 
-// Auto-indent
-const PSEUDO_INDENT_KW = /^(PROCEDURE|FUNCTION|IF|ELSE|FOR|WHILE|REPEAT|CASE)\b/i;
+// Auto-indent — pseudocode keywords must be ALL CAPS per CIE 0478 (no /i flag)
+const PSEUDO_INDENT_KW  = /^(PROCEDURE|FUNCTION|IF|ELSE|FOR|WHILE|REPEAT|CASE)\b/;
+const PSEUDO_INDENT_END = /\bTHEN\s*$/;
+const PSEUDO_CLOSE_KW   = /^(ENDIF|ENDPROCEDURE|ENDFUNCTION|ENDCASE|ENDWHILE|UNTIL|NEXT|ELSE)\b/;
 const JAVA_INDENT_CHARS = /[{(]\s*$/;
 
 $editor.addEventListener('keydown',e=>{
@@ -891,11 +921,24 @@ $editor.addEventListener('keydown',e=>{
     const indent=currentLine.match(/^(\s*)/)[1];
     const trimmed=currentLine.trim();
     let extra='';
-    if(lang==='pseudo'){ if(PSEUDO_INDENT_KW.test(trimmed)) extra='    '; }
-    else { if(JAVA_INDENT_CHARS.test(trimmed)) extra='    '; }
+    if(lang==='pseudo'){
+      if(PSEUDO_INDENT_KW.test(trimmed) || PSEUDO_INDENT_END.test(trimmed)) extra='    ';
+    } else { if(JAVA_INDENT_CHARS.test(trimmed)) extra='    '; }
     $editor.value=$editor.value.substring(0,s)+'\n'+indent+extra+$editor.value.substring(s);
     $editor.selectionStart=$editor.selectionEnd=s+1+indent.length+extra.length;
     updateLineNumbers();
+  }
+  if(e.key==='}' && lang==='java'){
+    const s=$editor.selectionStart;
+    const lineStart=$editor.value.lastIndexOf('\n',s-1)+1;
+    const beforeCursor=$editor.value.substring(lineStart,s);
+    if(/^\s+$/.test(beforeCursor) && beforeCursor.length>=4){
+      e.preventDefault();
+      const newIndent=beforeCursor.slice(0,-4);
+      $editor.value=$editor.value.substring(0,lineStart)+newIndent+'}'+$editor.value.substring(s);
+      $editor.selectionStart=$editor.selectionEnd=lineStart+newIndent.length+1;
+      updateLineNumbers();
+    }
   }
   if(e.key==='Backspace'){
     const s=$editor.selectionStart;
@@ -910,7 +953,27 @@ $editor.addEventListener('keydown',e=>{
   }
 });
 
-$editor.addEventListener('input',()=>{updateLineNumbers();autoSave();});
+// Snap pseudocode closing keywords back to the indent level of their opening pair
+function snapPseudoCloseKw(){
+  const lang=$editor.value.includes('{') ? 'java' : 'pseudo';
+  if(lang!=='pseudo') return;
+  const pos=$editor.selectionStart;
+  const text=$editor.value;
+  const lineStart=text.lastIndexOf('\n',pos-1)+1;
+  const lineEnd=text.indexOf('\n',pos);
+  const fullLine=text.substring(lineStart,lineEnd===-1?text.length:lineEnd);
+  const indent=fullLine.match(/^(\s*)/)[1];
+  const trimmed=fullLine.substring(indent.length);
+  if(PSEUDO_CLOSE_KW.test(trimmed) && indent.length>=4){
+    const newIndent=indent.slice(0,-4);
+    const lineEndPos=lineEnd===-1?text.length:lineEnd;
+    $editor.value=text.substring(0,lineStart)+newIndent+trimmed+text.substring(lineEndPos);
+    $editor.selectionStart=$editor.selectionEnd=pos-4;
+    updateLineNumbers();
+  }
+}
+
+$editor.addEventListener('input',()=>{updateLineNumbers();autoSave();snapPseudoCloseKw();});
 $editor.addEventListener('scroll',()=>{$lineNums.scrollTop=$editor.scrollTop;});
 
 function updateLineNumbers(){
