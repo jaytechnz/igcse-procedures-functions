@@ -781,10 +781,15 @@ const tasks=[
 {t:'Write a Function',d:'medium',
   pseudoKeys:['FUNCTION', 'REAL', 'AddGST','Price','RETURN', 'RETURNS','1.15','230','ENDFUNCTION'],
   javaKeys:['double','addGST','price','return','1.15','230'],
-  b:`<p>(a) Write a function, AddGST(), in <code>pseudocode</code> that takes a REAL parameter, <code>Price</code>.</br>
-  Your function should return the updated Price after 15% tax has been added to the parameter's value.</p>
+  b:`<p><strong>(a)</strong> Write a function, AddGST(), in <code>pseudocode</code> that takes a REAL parameter, <code>Price</code>. Your function should return the updated Price after 15% tax has been added to the parameter's value.</p>
   <p>
-  (b) Re-write your pseudocode function in <code>Java</code>.
+  <strong>(b)</string> Write a CALL statement which passes 20.95 as its argument.
+  </p>
+  <p>
+  <strong>(c)</strong> Re-write your pseudocode function in <code>Java</code>.
+  </p>
+  <p>
+  <strong>(d)</strong> Assign the function call to a variable called <code>priceWithTax</code>.
   </p>
   <div class="task-hint">💡 Pseudocode: Multiply the parameter by 1.15</div>`},
 
