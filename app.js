@@ -179,6 +179,9 @@ auth.onAuthStateChanged(async (user) => {
       enterApp();
     } catch (err) {
       console.error('Auth state error:', err);
+      loginScreen.classList.remove('hidden');
+      appShell.classList.add('hidden');
+      showErr(document.getElementById('loginError'), 'Sign-in error: ' + err.message);
     }
   } else {
     // Not signed in — show login
@@ -805,8 +808,8 @@ const tasks=[
 {t:'Function Calling a Procedure',d:'medium',
   pseudoKeys:['FUNCTION','PROCEDURE','CALL','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','CalculateTotal','PrintReceipt'],
   javaKeys:['double','void','return','calculateTotal','printReceipt','println'],
-  b:`Write a program with two modules:\n<ol><li>A <b>function</b> <code>CalculateTotal(Price : REAL, Qty : INTEGER) RETURNS REAL</code> that returns <code>Price * Qty</code></li>\n<li>A <b>procedure</b> <code>PrintReceipt(Item : STRING, Price : REAL, Qty : INTEGER)</code> that declares a local variable <code>Total</code>, calls <code>CalculateTotal</code>, and outputs the item name and total cost</li></ol>\nAfter the two modules are written, write a statement that calls PrintReceipt with the values "Notebook", 3.50 and 4.</br>Write what would be returned. 
-  <div class="task-hint">💡 Pseudocode: <code>DECLARE Total : REAL</code> inside the procedure.<br></div>`},
+  b:`Write a program with two modules in <strong>pseudocode</strong>:\n<ol><li>A <b>function</b>, <code>CalculateTotal()</code>, that takes <strong>two</strong> parameters, <code>Price</code> and <code>Quantity</code>, and returns <code>Price * Qty</code></li>\n<li>A <b>procedure</b>,<code>PrintReceipt()</code> that takes <strong>three</strong> parameters, <code>Item</code> (as a string), <code>Price</code> and <code>Quantity</code>. Declare a local variable <code>Total</code>, call <code>CalculateTotal()</code>, and output the item name and total cost</li></ol>\nAfter the two modules are written, write a statement that calls <code>PrintReceipt()</code> with the values "Notebook", 3.50 and 4.</br></br>Write what would be returned. 
+  <div class="task-hint">💡 Pseudocode: Remember that <strong>local variables</strong> are declared within its procedure or function.</br></div>`},
 
 {t:'Argument Order',d:'medium',
   pseudoKeys:['6','-6','position','first','second'],
