@@ -757,9 +757,9 @@ const tasks=[
 
   /* Task 6 */
 {t:'Procedure vs Function',d:'easy',
-  pseudoKeys:['PROCEDURE','FUNCTION','RETURN','ENDPROCEDURE','ENDFUNCTION'],
+  pseudoKeys:['PROCEDURE','ENDPROCEDURE', 'INTEGER', 'return'],
   javaKeys:['void','return','int','static','public'],
-  b:`<b>(a)</b> Explain the difference between a procedure and a function.<br><b>(b)</b> Write a procedure in CIE pseudocode to output the square of two parameters.<br><b>(c)</b> Write a function in Java to return the higher of two parameters, or the first parameter if they are the same.\n<div class="task-hint">💡 In pseudocode: PROCEDURE/ENDPROCEDURE, FUNCTION/ENDFUNCTION with RETURN. In Java: <code>void</code> = procedure, typed <code>return</code> = function. Use camelCase for method names in Java.</div>`},
+  b:`<b>(a)</b> Explain the difference between a procedure and a function.<br><b>(b)</b> Write a procedure in pseudocode to output the square of its integer parameter.<br><b>(c)</b> Write a function in Java to return the higher of two parameters, <code>num1</code> and <code>num2</code>, or the first parameter if they are the same.\n<div class="task-hint">💡 Remember to start parameters with a capital letter in pseudocode.<br>In Java code, remember to use camelCase spelling.<br>For both pseudocode code AND Java, always use suitable line indenation!</div>`},
 
   /* Task 7 */
 {t:'Write a Procedure',d:'medium',
