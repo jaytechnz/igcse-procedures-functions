@@ -1622,14 +1622,17 @@ body {
   color: var(--navy);
   opacity: .3;
   font-family: 'JetBrains Mono', monospace;
-  font-size: .82rem;
+  font-size: .87rem;
   line-height: 1.65;
   text-align: right;
   user-select: none;
-  overflow: hidden;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   flex-shrink: 0;
   white-space: pre;
 }
+.line-numbers::-webkit-scrollbar { display: none; }
 
 #codeEditor {
   flex: 1;
@@ -1637,12 +1640,15 @@ body {
   border: none;
   resize: none;
   font-family: 'JetBrains Mono', monospace;
-  font-size: .92rem;
+  font-size: .87rem;
   line-height: 1.65;
   color: var(--navy);
   tab-size: 4;
   outline: none;
+  overflow-x: auto;
   overflow-y: auto;
+  white-space: pre;
+  overflow-wrap: normal;
 }
 
 #codeEditor::placeholder {

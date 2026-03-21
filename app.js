@@ -978,20 +978,22 @@ function snapPseudoCloseKw(){
 
 $editor.addEventListener('input',()=>{normalizeOperators();updateLineNumbers();autoSave();snapPseudoCloseKw();});
 $editor.addEventListener('scroll',()=>{$lineNums.scrollTop=$editor.scrollTop;});
+$editor.addEventListener('keyup',()=>{$lineNums.scrollTop=$editor.scrollTop;});
 
 function updateLineNumbers(){
   const lines=$editor.value.split('\n').length;
   $lineNums.textContent=Array.from({length:lines},(_,i)=>i+1).join('\n');
-  $lineNums.scrollTop=$editor.scrollTop;
+  requestAnimationFrame(()=>{$lineNums.scrollTop=$editor.scrollTop;});
 }
 
 function normalizeOperators(){
   const val=$editor.value;
-  const newVal=val.replace(/≤/g,'<=').replace(/≥/g,'>=');
+  // Use unicode escapes to match ≤ (U+2264) and ≥ (U+2265) regardless of file encoding
+  const newVal=val.replace(/\u2264/g,'<=').replace(/\u2265/g,'>=');
   if(newVal!==val){
     const pos=$editor.selectionStart;
     const before=val.slice(0,pos);
-    const diff=(before.match(/≤/g)||[]).length+(before.match(/≥/g)||[]).length;
+    const diff=(before.match(/\u2264/g)||[]).length+(before.match(/\u2265/g)||[]).length;
     $editor.value=newVal;
     $editor.selectionStart=$editor.selectionEnd=pos+diff;
   }
