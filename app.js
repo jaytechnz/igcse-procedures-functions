@@ -786,7 +786,7 @@ const tasks=[
   <p>
   (b) Re-write your pseudocode function in <code>Java</code>.
   </p>
-  <div class="task-hint">💡 Pseudocode: Multilpy the parameter by 1.15</div>`},
+  <div class="task-hint">💡 Pseudocode: Multiply the parameter by 1.15</div>`},
 
   /* Task 9 */
 {t:'Two-Parameter Function',d:'medium',
