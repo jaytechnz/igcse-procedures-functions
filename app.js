@@ -746,7 +746,7 @@ const tasks=[
   javaKeys:['int','String','type','mismatch','15'],
   b:`This code has <b>two errors</b>. Find and fix both:\n<pre>PROCEDURE SayAge(Age : INTEGER)\n    OUTPUT "You are " &amp; Age &amp; " years old"\nENDPROCEDURE\n\nCALL SayAge("fifteen")</pre>\n<b>(a)</b> Describe what is wrong with the argument in the CALL statement.<br><b>(b)</b> Describe what is wrong with the OUTPUT line in the procedure.<br><b>(c)</b> Rewrite the corrected procedure in <code>pseudocode</code>.
   <div class="task-hint">
-  💡 Use any error messages that may display after you check your answers to refine your answer before clicking the 'Check My Answer' button again.
+  💡 Use any error messages that may display after you check your answers to refine your answer before clicking the 'Check My Answer' button again.<p></p>
   </div>`},
 
   /* Task 5 */
