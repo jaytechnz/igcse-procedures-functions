@@ -744,7 +744,10 @@ const tasks=[
 {t:'Spot the Error',d:'easy',
   pseudoKeys:['INTEGER','STRING','type','mismatch','15','comma','concatenation'],
   javaKeys:['int','String','type','mismatch','15'],
-  b:`This code has <b>two errors</b>. Find and fix both:\n<pre>PROCEDURE SayAge(Age : INTEGER)\n    OUTPUT "You are " &amp; Age &amp; " years old"\nENDPROCEDURE\n\nCALL SayAge("fifteen")</pre>\n<b>(a)</b> What is wrong with the argument in the CALL statement? Fix it.<br><b>(b)</b> What is wrong with the OUTPUT line? Rewrite it correctly, replacing <code>&amp;</code> with commas.\n<div class="task-hint">💡 Error 1: <code>"fifteen"</code> is a STRING but <code>Age</code> expects an INTEGER — pass a number, e.g. <code>15</code>.<br>Error 2: <code>&amp;</code> is for string concatenation only — it cannot be used with an INTEGER. Use commas: <code>OUTPUT "You are ", Age, " years old"</code></div>`},
+  b:`This code has <b>two errors</b>. Find and fix both:\n<pre>PROCEDURE SayAge(Age : INTEGER)\n    OUTPUT "You are " &amp; Age &amp; " years old"\nENDPROCEDURE\n\nCALL SayAge("fifteen")</pre>\n<b>(a)</b> Describe what is wrong with the argument in the CALL statement.<br><b>(b)</b> Describe what is wrong with the OUTPUT line in the procedure.<br><b>(c)</b> Rewrite the corrected procedure in <code>pseudocode</code>.
+  <div class="task-hint">
+  💡 Use any error messages that may display after you check your answers to refine your answer before clicking the 'Check My Answer' button again.
+  </div>`},
 
   /* Task 5 */
 {t:'Write a Call',d:'easy',
