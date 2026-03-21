@@ -763,7 +763,7 @@ const tasks=[
 
   /* Task 7 */
 {t:'Write a Procedure',d:'medium',
-  pseudoKeys:['PROCEDURE','DisplayTriangle','NumRows','DECLARE','FOR', 'NEXT', 'ENDPROCEDURE','OUTPUT','CALL'],
+  pseudoKeys:['PROCEDURE','DisplayTriangle','NumRows','DECLARE','FOR', 'NEXT', 'ENDPROCEDURE','OUTPUT','CALL', '←'],
   javaKeys:['void','displayTriangle','numRows','for','System.out'],
   b:`Write a procedure <code>DisplayTriangle()</code> that takes one integer parameter, <code>NumRows</code>; this is the number of rows that will make up a right-angled triangle of # symbols.</br>You will need to use <strong>two</strong> loops:
   <ul>
