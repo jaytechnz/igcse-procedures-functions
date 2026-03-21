@@ -779,7 +779,7 @@ const tasks=[
 
   /* Task 8 */
 {t:'Write a Function',d:'medium',
-  pseudoKeys:['FUNCTION','AddGST','Price','RETURN', 'RETURNS','1.15','230','ENDFUNCTION'],
+  pseudoKeys:['FUNCTION', 'REAL', 'AddGST','Price','RETURN', 'RETURNS','1.15','230','ENDFUNCTION'],
   javaKeys:['double','addGST','price','return','1.15','230'],
   b:`<p>(a) Write a function, AddGST(), in <code>pseudocode</code> that takes a REAL parameter, <code>Price</code>.</br>
   Your function should return the updated Price after 15% tax has been added to the parameter's value.</p>
