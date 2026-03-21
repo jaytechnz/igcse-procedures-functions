@@ -798,11 +798,11 @@ const tasks=[
 
   /* Task 9 */
 {t:'Two-Parameter Function',d:'medium',
-  pseudoKeys:['FUNCTION','Power','Base','Exponent','RETURN','ENDFUNCTION','DECLARE','Result'],
+  pseudoKeys:['FUNCTION','Power','Base','Exponent', '^', 'RETURN','ENDFUNCTION','DECLARE','Result'],
   javaKeys:['int','power','base','exponent','return','result'],
-  b:`(a) Write a <code>pseudocode</code function called <code>Power()</code> that takes <strong>two</strong> integer parameters, <code>Base</code> and <code>Exponent</code>
+  b:`(a) Write a <code>pseudocode</code function called <code>Power()</code> that takes <strong>two</strong> integer parameters, <code>Base</code> and <code>Exponent</code>, and returns the power.
   <p>(b) Write the values returned after 4 and 3 are passed, and then after 7 and 2 are passed.
-  <div class="task-hint">💡 Your return value should be in a variable called <code>Result</code>.</div>`},
+  <div class="task-hint">💡 Your return value should be in a <strong>local variable</strong> called <code>Result</code>.</div>`},
 
   /* Task 10 */
 {t:'Function Calling a Procedure',d:'medium',
