@@ -976,7 +976,7 @@ function snapPseudoCloseKw(){
   }
 }
 
-$editor.addEventListener('input',()=>{normalizeOperators();updateLineNumbers();autoSave();snapPseudoCloseKw();});
+$editor.addEventListener('input',()=>{convertAssignment();normalizeOperators();updateLineNumbers();autoSave();snapPseudoCloseKw();});
 $editor.addEventListener('scroll',()=>{$lineNums.scrollTop=$editor.scrollTop;});
 $editor.addEventListener('keyup',()=>{$lineNums.scrollTop=$editor.scrollTop;});
 
@@ -984,6 +984,17 @@ function updateLineNumbers(){
   const lines=$editor.value.split('\n').length;
   $lineNums.textContent=Array.from({length:lines},(_,i)=>i+1).join('\n');
   requestAnimationFrame(()=>{$lineNums.scrollTop=$editor.scrollTop;});
+}
+
+function convertAssignment(){
+  const val=$editor.value;
+  if(!val.includes('<-')) return;
+  const pos=$editor.selectionStart;
+  const newVal=val.replace(/<-/g,'\u2190');
+  const before=val.slice(0,pos);
+  const count=(before.match(/<-/g)||[]).length;
+  $editor.value=newVal;
+  $editor.selectionStart=$editor.selectionEnd=pos-count;
 }
 
 function normalizeOperators(){
