@@ -783,7 +783,7 @@ const tasks=[
   javaKeys:['double','addGST','price','return','1.15','230'],
   b:`<p><strong>(a)</strong> Write a function, AddGST(), in <code>pseudocode</code> that takes a REAL parameter, <code>Price</code>. Your function should return the updated Price after 15% tax has been added to the parameter's value.</p>
   <p>
-  <strong>(b)</string> Write a CALL statement which passes 20.95 as its argument.
+  <strong>(b)</strong> Write a CALL statement which passes 20.95 as its argument.
   </p>
   <p>
   <strong>(c)</strong> Re-write your pseudocode function in <code>Java</code>.
