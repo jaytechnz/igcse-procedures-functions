@@ -818,7 +818,8 @@ const tasks=[
 {t:'Argument Order',d:'medium',
   pseudoKeys:['6','-6','position','first','second'],
   javaKeys:['6','-6','position','first','second'],
-  b:`<pre>PROCEDURE Subtract(A : INTEGER, B : INTEGER)\n    OUTPUT A - B\nENDPROCEDURE\n\nCALL Subtract(10, 4)\nCALL Subtract(4, 10)</pre>\n<b>(a)</b> What is the output of each call? <b>(b)</b> Why does the order of arguments matter?\n`},
+  b:`<pre>PROCEDURE Subtract(A : INTEGER, B : INTEGER)\n    OUTPUT A - B\nENDPROCEDURE\n\nCALL Subtract(10, 4)\nCALL Subtract(4, 10)</pre>\n<b>(a)</b> What is the output of each call? 
+  <p><b>(b)</b> Why does the order of arguments matter?</p>`},
 
 {t:'Local vs Global',d:'medium',
   pseudoKeys:['60','100','local','copy','ENDPROCEDURE'],
