@@ -800,7 +800,7 @@ const tasks=[
 {t:'Two-Parameter Function',d:'medium',
   pseudoKeys:['FUNCTION','Power','Base','Exponent', '^', 'RETURN','ENDFUNCTION','DECLARE','Result'],
   javaKeys:['int','power','base','exponent','return','result'],
-  b:`(a) Write a <code>pseudocode</code function called <code>Power()</code> that takes <strong>two</strong> integer parameters, <code>Base</code> and <code>Exponent</code>, and returns the power.
+  b:`(a) Write a <code>pseudocode</code> function called <code>Power()</code> that takes <strong>two</strong> integer parameters, <code>Base</code> and <code>Exponent</code>, and returns the power.
   <p>(b) Write the values returned after 4 and 3 are passed, and then after 7 and 2 are passed.
   <div class="task-hint">💡 Your return value should be in a <strong>local variable</strong> called <code>Result</code>.</div>`},
 
@@ -821,55 +821,67 @@ const tasks=[
   b:`<pre>PROCEDURE Subtract(A : INTEGER, B : INTEGER)\n    OUTPUT A - B\nENDPROCEDURE\n\nCALL Subtract(10, 4)\nCALL Subtract(4, 10)</pre>\n<b>(a)</b> What is the output of each call? 
   <p><b>(b)</b> Why does the order of arguments matter?</p>`},
 
+  /* Task 12 */
 {t:'Local vs Global',d:'medium',
   pseudoKeys:['60','100','local','copy','ENDPROCEDURE'],
   javaKeys:['60','100','local','copy'],
   b:`Predict all outputs:\n<pre>X ← 100\n\nPROCEDURE ChangeX(X : INTEGER)\n    X ← X + 50\n    OUTPUT X\nENDPROCEDURE\n\nCALL ChangeX(10)\nOUTPUT X</pre>\n<div class="task-hint">💡 The parameter X is a local copy, not the global X.</div>`},
 
+  /* Task 13 */
 {t:'Two Functions Together',d:'medium',
   pseudoKeys:['FUNCTION','RETURN','ENDFUNCTION','CelsiusToFahrenheit','FahrenheitToCelsius','DECLARE'],
   javaKeys:['double','return','celsiusToFahrenheit','fahrenheitToCelsius'],
   b:`Write two functions:\n<ol><li><code>CelsiusToFahrenheit(C : REAL) RETURNS REAL</code> — returns <code>C * 9/5 + 32</code></li>\n<li><code>FahrenheitToCelsius(F : REAL) RETURNS REAL</code> — returns <code>(F - 32) * 5/9</code></li></ol>\nWrite a main program that declares variables, converts 100°C to Fahrenheit and 32°F to Celsius, and outputs both results.\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Result : REAL</code> in main.<br>Java: <code>double result = celsiusToFahrenheit(100);</code></div>`},
 
+  /* Task 14 */
 {t:'Modular Discount System',d:'medium',
   pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','CALL','DECLARE','ApplyDiscount','CalculateVAT','ShowFinalPrice'],
   javaKeys:['double','void','return','applyDiscount','calculateVAT','showFinalPrice'],
   b:`Build a modular pricing system with three modules:\n<ol><li><code>ApplyDiscount(Price : REAL, Percent : INTEGER) RETURNS REAL</code></li>\n<li><code>CalculateVAT(Price : REAL) RETURNS REAL</code> — adds 20% VAT</li>\n<li><code>ShowFinalPrice(Original : REAL, Discount : INTEGER)</code> — a <b>procedure</b> that declares local variables, calls both functions (discount first, then VAT), and outputs the original price, discounted price, and final price</li></ol>\nCall <code>ShowFinalPrice(50.00, 10)</code>. What are the three values output?\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Discounted : REAL</code> and <code>DECLARE Final : REAL</code> inside the procedure.<br>Java: <code>double discounted = applyDiscount(original, discount);</code></div>`},
 
+  /* Task 15 */
 {t:'Multi-Function Program',d:'hard',
   pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','CALL','GetArea','GetPerimeter','DescribeRectangle'],
   javaKeys:['double','void','return','getArea','getPerimeter','describeRectangle'],
   b:`Write in CIE pseudocode <b>or</b> Java:\n<ol><li><code>GetArea(Length : REAL, Width : REAL) RETURNS REAL</code></li>\n<li><code>GetPerimeter(Length : REAL, Width : REAL) RETURNS REAL</code></li>\n<li><code>DescribeRectangle(Length : REAL, Width : REAL)</code> — a procedure that declares local variables for area and perimeter, calls both functions, and outputs the results</li></ol>\nWrite a main program that declares Length and Width, reads input, and calls DescribeRectangle.`},
 
+  /* Task 16 */
 {t:'Validation Function',d:'hard',
   pseudoKeys:['FUNCTION','PROCEDURE','BOOLEAN','RETURN','WHILE','ENDFUNCTION','ENDPROCEDURE','DECLARE','ValidateAge','GetValidAge'],
   javaKeys:['boolean','return','while','validateAge','getValidAge','Scanner'],
   b:`Write two modules:\n<ol><li><code>ValidateAge(Age : INTEGER) RETURNS BOOLEAN</code> — returns TRUE if Age is between 0 and 150 inclusive</li>\n<li><code>GetValidAge()</code> — a procedure that declares a local variable <code>Age</code>, loops using a WHILE loop until <code>ValidateAge</code> returns TRUE, then outputs the valid age</li></ol>\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Age : INTEGER</code> inside GetValidAge.<br>Java: <code>public static boolean validateAge(int age)</code></div>`},
 
+  /* Task 17 */
 {t:'Swap (BYREF)',d:'hard',
   pseudoKeys:['PROCEDURE','BYREF','DECLARE','Temp','ENDPROCEDURE','Swap'],
   javaKeys:['void','swap','temp','int[]'],
   b:`Write <code>Swap(BYREF A : INTEGER, BYREF B : INTEGER)</code> that uses a declared local variable <code>Temp</code> to swap the values. Show what happens step by step when X=5, Y=9. Why is BYREF essential?\n\nIn Java, show how to swap two elements in an array (since Java primitives are always by value).\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Temp : INTEGER</code> inside Swap.</div>`},
 
+/* Task 18 */
 {t:'String Processing',d:'hard',
   pseudoKeys:['FUNCTION','RETURN','ENDFUNCTION','DECLARE','CountChar','FOR','LENGTH','Count'],
   javaKeys:['int','return','countChar','for','length','charAt','count'],
   b:`Write <code>CountChar(Text : STRING, Target : CHAR) RETURNS INTEGER</code>. Declare a local counter variable. Show what <code>CountChar("banana", "a")</code> returns.\n\nThen write a main program that declares a sentence variable and counts all vowels by calling <code>CountChar</code> five times (once for each vowel).\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Count : INTEGER</code> inside the function.<br>Java: <code>public static int countChar(String text, char target)</code></div>`},
 
+  /* Task 19 */
 {t:'Array Parameter',d:'hard',
   pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','FindMax','FindMin','DisplayStats'],
   javaKeys:['int','void','return','findMax','findMin','displayStats'],
   b:`Write three modules:\n<ol><li><code>FindMax(Numbers : ARRAY OF INTEGER, Size : INTEGER) RETURNS INTEGER</code> — declare a local <code>Max</code> variable</li>\n<li><code>FindMin(Numbers : ARRAY OF INTEGER, Size : INTEGER) RETURNS INTEGER</code> — declare a local <code>Min</code> variable</li>\n<li><code>DisplayStats(Numbers : ARRAY, Size : INTEGER)</code> — a procedure that declares local variables, calls both functions, and outputs max, min, and range</li></ol>\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Java: <code>public static int findMax(int[] numbers, int size)</code></div>`},
 
+  /* Task 20 */
 {t:'Bubble Sort',d:'challenge',
   pseudoKeys:['PROCEDURE','BYREF','DECLARE','Swap','ENDPROCEDURE','FOR','Temp','NoSwaps'],
   javaKeys:['void','swap','for','temp','int[]','boolean'],
   b:`Write <code>BubbleSort(BYREF Arr : ARRAY OF INTEGER, Size : INTEGER)</code> in CIE pseudocode <b>or</b> Java.\n<ol><li>Declare all local variables (loop counters, a NoSwaps flag, Temp for swapping).</li>\n<li>Use a separate <code>Swap</code> procedure.</li>\n<li>Show the array after each pass when sorting [4, 2, 7, 1, 3].</li></ol>\n<div class="task-hint">💡 Pseudocode: <code>DECLARE I : INTEGER</code>, <code>DECLARE NoSwaps : BOOLEAN</code><br>Java: <code>public static void bubbleSort(int[] arr, int size)</code></div>`},
 
+  /* Task 21 */
 {t:'Password Checker',d:'challenge',
   pseudoKeys:['FUNCTION','BOOLEAN','RETURN','ENDFUNCTION','DECLARE','HasMinLength','HasUpperCase','HasDigit','CheckPassword','Count'],
   javaKeys:['boolean','return','String','hasMinLength','hasUpperCase','hasDigit','checkPassword','int'],
   b:`Build a modular password system. Declare all local variables.\n<ol><li><code>HasMinLength(Password : STRING, MinLen : INTEGER) RETURNS BOOLEAN</code></li>\n<li><code>HasUpperCase(Password : STRING) RETURNS BOOLEAN</code> — declare a local <code>Found</code> variable</li>\n<li><code>HasDigit(Password : STRING) RETURNS BOOLEAN</code> — declare a local <code>Found</code> variable</li>\n<li><code>CheckPassword(Password : STRING) RETURNS STRING</code> — declare a local <code>Count</code> variable, call all three functions, return "Strong"/"Medium"/"Weak"</li></ol>\nWrite in CIE pseudocode <b>or</b> Java. Work through <code>CheckPassword("Hello1")</code> showing what each function returns.\n<div class="task-hint">💡 Java: <code>public static boolean hasMinLength(String password, int minLen)</code></div>`},
+
+  /* Task 22 */
 
 {t:'Menu Calculator',d:'challenge',
   pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','GetChoice','GetNumber','WHILE','CALL'],
