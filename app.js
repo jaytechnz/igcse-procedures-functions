@@ -804,20 +804,21 @@ const tasks=[
   <p>(b) Write the values returned after 4 and 3 are passed, and then after 7 and 2 are passed.
   <div class="task-hint">💡 Your return value should be in a <strong>local variable</strong> called <code>Result</code>.</div>`},
 
-  /* Task 10 */
+  /* Task 10 - INCLUDE A HINT ABOUT HOW TO ROUND TO 2DP IN JAVA*/
 {t:'Function Calling a Procedure',d:'medium',
   pseudoKeys:['FUNCTION','PROCEDURE','CALL','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','CalculateTotal','PrintReceipt', 'ROUND', 'TotalCost', 'REAL', 'INTEGER', '2', '&', ','],
-  javaKeys:['double','void','return','calculateTotal','printReceipt','println'],
+  javaKeys:['double','void','return','calculateTotal','printReceipt','println', 'price', 'quantity', 'item', 'totalCost'],
   b:`Write a program with two modules in <strong>pseudocode</strong>:\n<ol><li>A <b>function</b>, <code>CalculateTotal()</code>, that takes <strong>two</strong> parameters, <code>Price</code> and <code>Quantity</code>, and returns <code>Price * Quantity</code> rounded to 2dp</li>\n<li>A <b>procedure</b>,<code>PrintReceipt()</code> that takes <strong>three</strong> parameters, <code>Item</code> (as a string), <code>Price</code> and <code>Quantity</code>. Declare a local variable <code>Total</code>, call <code>CalculateTotal()</code>, and output the item name and total cost (use the appropriate concatenation of strings with strings, and strings with non-strings</li></ol>\nAfter the two modules are written, write a statement that calls <code>PrintReceipt()</code> with the values "Notebook", 3.50 and 4.</br></br>Write what would be returned. 
   <p>
   Write the equivalent code in <strong>Java</strong> as well.
   </p>
   <div class="task-hint">💡 Pseudocode: Remember that <strong>local variables</strong> are declared within their procedure or function.</br></div>`},
 
+  /* TASK 11 */
 {t:'Argument Order',d:'medium',
   pseudoKeys:['6','-6','position','first','second'],
   javaKeys:['6','-6','position','first','second'],
-  b:`<pre>PROCEDURE Subtract(A : INTEGER, B : INTEGER)\n    OUTPUT A - B\nENDPROCEDURE\n\nCALL Subtract(10, 4)\nCALL Subtract(4, 10)</pre>\n<b>(a)</b> Output of each call? <b>(b)</b> Why does order matter?\n<div class="task-hint">💡 A gets the first value, B the second.</div>`},
+  b:`<pre>PROCEDURE Subtract(A : INTEGER, B : INTEGER)\n    OUTPUT A - B\nENDPROCEDURE\n\nCALL Subtract(10, 4)\nCALL Subtract(4, 10)</pre>\n<b>(a)</b> What is the output of each call? <b>(b)</b> Why does the order of arguments matter?\n`},
 
 {t:'Local vs Global',d:'medium',
   pseudoKeys:['60','100','local','copy','ENDPROCEDURE'],
