@@ -829,9 +829,8 @@ const tasks=[
 
   /* Task 13 */
 {t:'Two Functions Together',d:'medium',
-  pseudoKeys:['FUNCTION','RETURN','ENDFUNCTION','CelsiusToFahrenheit','FahrenheitToCelsius','DECLARE'],
-  javaKeys:['double','return','celsiusToFahrenheit','fahrenheitToCelsius'],
-  b:`Write two functions:\n<ol><li><code>CelsiusToFahrenheit(C : REAL) RETURNS REAL</code> — returns <code>C * 9/5 + 32</code></li>\n<li><code>FahrenheitToCelsius(F : REAL) RETURNS REAL</code> — returns <code>(F - 32) * 5/9</code></li></ol>\nWrite a main program that declares variables, converts 100°C to Fahrenheit and 32°F to Celsius, and outputs both results.\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Result : REAL</code> in main.<br>Java: <code>double result = celsiusToFahrenheit(100);</code></div>`},
+  pseudoKeys:['FUNCTION','RETURN','ENDFUNCTION','CelsiusToFahrenheit','FahrenheitToCelsius','DECLARE', 'Celsius','Fahrenheit'],
+  b:`Write two functions:\n<ol><li><code>CelsiusToFahrenheit(Celsius : REAL) RETURNS REAL</code> — returns <code>C * 9/5 + 32</code></li>\n<li><code>FahrenheitToCelsius(Fahrenheit : REAL) RETURNS REAL</code> — returns <code>(F - 32) * 5/9</code></li></ol>\nNow write a main program (procedure) that declares variables, converts 100°C to Fahrenheit and 32°F to Celsius, and outputs both results.\n\nWrite in <code>pseudocode</code>.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Result : REAL</code> in main.<br>Java: <code>double result = celsiusToFahrenheit(100);</code></div>`},
 
   /* Task 14 */
 {t:'Modular Discount System',d:'medium',
