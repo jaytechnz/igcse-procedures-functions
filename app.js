@@ -823,8 +823,8 @@ const tasks=[
 
   /* Task 12 */
 {t:'Local vs Global',d:'medium',
-  pseudoKeys:['60','100','local','copy','ENDPROCEDURE'],
-  javaKeys:['60','100','local','copy'],
+  pseudoKeys:['60','100',],
+  javaKeys:['60','100',],
   b:`Predict all outputs:\n<pre>X ← 100\n\nPROCEDURE ChangeX(X : INTEGER)\n    X ← X + 50\n    OUTPUT X\nENDPROCEDURE\n\nCALL ChangeX(10)\nOUTPUT X</pre>\n<div class="task-hint">💡 The parameter X is a local copy, not the global X.</div>`},
 
   /* Task 13 */
