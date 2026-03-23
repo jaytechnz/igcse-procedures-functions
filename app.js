@@ -834,9 +834,9 @@ const tasks=[
 
   /* Task 14 */
 {t:'Modular Discount System',d:'medium',
-  pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','CALL','DECLARE','ApplyDiscount','CalculateVAT','ShowFinalPrice'],
-  javaKeys:['double','void','return','applyDiscount','calculateVAT','showFinalPrice'],
-  b:`Build a modular pricing system with three modules:\n<ol><li><code>ApplyDiscount(Price : REAL, Percent : INTEGER) RETURNS REAL</code></li>\n<li><code>CalculateVAT(Price : REAL) RETURNS REAL</code> — adds 20% VAT</li>\n<li><code>ShowFinalPrice(Original : REAL, Discount : INTEGER)</code> — a <b>procedure</b> that declares local variables, calls both functions (discount first, then VAT), and outputs the original price, discounted price, and final price</li></ol>\nCall <code>ShowFinalPrice(50.00, 10)</code>. What are the three values output?\n\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Pseudocode: <code>DECLARE Discounted : REAL</code> and <code>DECLARE Final : REAL</code> inside the procedure.<br>Java: <code>double discounted = applyDiscount(original, discount);</code></div>`},
+  pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','CALL','DECLARE','ApplyDiscount','CalculateGST','ShowFinalPrice', 'ROUND'],
+  javaKeys:['double','void','return','applyDiscount','calculateGST','showFinalPrice'],
+  b:`Build a modular pricing system with three modules:\n<ol><li><code>ApplyDiscount</code> - takes <strong>two</strong> parameters (Price - REAL and Percent - INTEGER) and returns a REAL number </li>\n<li><code>CalculateGST</code> that takes Price as a REAL and returns a REAL — adds 15% GST</li>\n<li><code>ShowFinalPrice</code> — takes <strong>two</strong> parameters (Original - REAL and Discount - INTEGER). This should be a <b>procedure</b> that declares local variables, calls both functions (discount first, then GST), and outputs the original price, discounted price, and final price, all formatted to <strong>2 decimal places</strong>.</li></ol>\nCall <code>ShowFinalPrice(50.00, 10)</code>. <p>What are the three values output?</p>\n\nWrite in <code>pseudocode</code>.\n<div class="task-hint">💡 Pseudocode: Use <code>DECLARE Discounted : REAL</code> and <code>DECLARE Final : REAL</code> inside the procedure.</div>`},
 
   /* Task 15 */
 {t:'Multi-Function Program',d:'hard',
