@@ -1356,8 +1356,11 @@ async function refreshDashboard(){
         const taskName = encodeURIComponent(tasks[i]?.t || `Task ${i+1}`);
         const email = encodeURIComponent(s.email);
         const feedback = encodeURIComponent(s.feedback[i] || '');
+        const hasFeedback = !!s.feedback[i];
         const clickable = code ? `data-code="${encodeURIComponent(code)}" data-task="${i}" data-taskname="${taskName}" data-email="${email}" data-uid="${s.uid}" data-feedback="${feedback}" data-status="${st||''}"` : '';
-        dots += `<span class="detail-dot ${cls}${code?' dd-clickable':''}" title="Task ${i+1}${code?' — click to view code':''}" ${clickable}>${i+1}</span>`;
+        const feedbackCls = hasFeedback ? ' dd-has-feedback' : '';
+        const titleSuffix = code ? (hasFeedback ? ' — feedback given' : ' — click to view code') : '';
+        dots += `<span class="detail-dot ${cls}${code?' dd-clickable':''}${feedbackCls}" title="Task ${i+1}${titleSuffix}" ${clickable}>${i+1}</span>`;
       }
       dots += '</div>';
       $body.innerHTML += `<tr>
@@ -1453,6 +1456,9 @@ function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFee
       btn.disabled = true;
       try {
         await db.collection('progress').doc(_modalUid).update({ [`feedback.${_modalTaskIndex}`]: feedback });
+        // Mark dot as having feedback
+        const fdot = document.querySelector(`.dd-clickable[data-uid="${_modalUid}"][data-task="${_modalTaskIndex}"]`);
+        if (fdot) { fdot.classList.add('dd-has-feedback'); fdot.title = fdot.title.replace(' — click to view code','') + ' — feedback given'; fdot.dataset.feedback = encodeURIComponent(feedback); }
         setFeedbackSavedState(feedback);
       } catch(err) {
         console.error('Feedback save error:', err);
