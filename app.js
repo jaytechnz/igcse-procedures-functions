@@ -922,7 +922,6 @@ const tasks=[
   /* Task 1 */
 {t:'Identify the Parts',d:'easy',
   pseudoKeys:['Greet','Name','Anika','STRING'],
-  javaKeys:['greet','name','Anika','String'],
   b:`Look at this code:\n<pre>PROCEDURE Greet(Name : STRING)\n    OUTPUT "Hello, " &amp; Name\nENDPROCEDURE\n\nCALL Greet("Anika")</pre>\nWrite down: <b>(a)</b> the procedure name, <b>(b)</b> the parameter, <b>(c)</b> the argument, <b>(d)</b> the data type.`},
 
   /* Task 2 */
@@ -1246,6 +1245,7 @@ function autoSave(){
 }
 
 function scoreKeys(code, keys, caseSensitive) {
+  if(!keys || !keys.length) return { found:[], missed:[], pct:0 };
   const found=[], missed=[];
   keys.forEach(k=>{
     if(caseSensitive){ if(code.includes(k)) found.push(k); else missed.push(k); }
