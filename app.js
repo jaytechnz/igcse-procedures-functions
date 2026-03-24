@@ -1006,14 +1006,14 @@ function anlProgressTime(students) {
    QUIZ — students type answers, get feedback
    ══════════════════════════════════════════════ */
 const quiz = [
-  { q:'Explain the difference between a <b>procedure</b> and a <b>function</b>.', keys:['procedure','function','return','value','void'], concepts:[{term:'procedure does not return',weight:2},{term:'function returns',weight:2},{term:'void',weight:1}], model:'A <b>procedure</b> performs actions but does <b>not return a value</b>. A <b>function</b> performs actions and <b>returns a value</b> that can be stored or used in an expression. In Java, a procedure is a <code>void</code> method.' },
-  { q:'What is a <b>parameter</b>? How is it different from an <b>argument</b>?', keys:['parameter','argument','definition','call','placeholder','value','passed'], concepts:[{term:'parameter.*definition',weight:2},{term:'argument.*call',weight:2},{term:'placeholder',weight:1}], model:'A <b>parameter</b> is the placeholder variable in the function/procedure <b>definition</b>. An <b>argument</b> is the actual value <b>passed in the call</b>. Parameters are defined; arguments are supplied.' },
-  { q:'Why is it better to use parameters instead of global variables inside a procedure?', keys:['reusable','modular','different','values','debug','test','maintain'], concepts:[{term:'reusab',weight:2},{term:'modular',weight:2},{term:'different values',weight:1},{term:'debug|test|maintain',weight:1}], model:'Parameters make code <b>reusable</b> and <b>modular</b>. The procedure can work with <b>different values</b> each time it is called, and is easier to test, debug, and maintain.' },
-  { q:'If <code>CalculateArea(5, 10)</code> calls <code>PROCEDURE CalculateArea(Length, Width)</code>, what value does <code>Width</code> hold and why?', keys:['10','width','position','second','first','order'], concepts:[{term:'10',weight:2},{term:'position',weight:2},{term:'second',weight:1}], model:'<code>Width = 10</code>. Arguments are matched to parameters <b>by position</b>: the first argument (5) goes to Length, the <b>second</b> argument (10) goes to Width.' },
-  { q:'Explain what <b>BYVAL</b> (by value) means when passing a parameter. Give an example of when you would use it.', keys:['copy','original','not','change','affect','safe','read'], concepts:[{term:'copy',weight:3},{term:'not.*change|not.*affect|original.*same',weight:2}], model:'<b>BYVAL</b> means a <b>copy</b> of the argument is passed. Changes inside the procedure do <b>not affect the original</b> variable. Use it when you only need to read a value without modifying it.' },
+  { q:'Explain the difference between a <b>procedure</b> and a <b>function</b>.', keys:['procedure','function','return','value'], concepts:[{term:'procedure does not return',weight:2},{term:'function returns',weight:2},{term:'void',weight:1}], model:'A <b>procedure</b> performs actions but does <b>not return a value</b>. A <b>function</b> performs actions and <b>returns a value</b> that can be stored or used in an expression. In Java, a procedure is a <code>void</code> method.' },
+  { q:'What is a <b>parameter</b>? How is it different from an <b>argument</b>?', keys:['parameter','argument','placeholder','value','passed'], concepts:[{term:'parameter.*definition',weight:2},{term:'argument.*call',weight:2},{term:'placeholder',weight:1}], model:'A <b>parameter</b> is the placeholder variable in the function/procedure <b>definition</b>. An <b>argument</b> is the actual value <b>passed in the call</b>. Parameters are defined; arguments are supplied.' },
+  { q:'Why is it better to use parameters instead of global variables inside a procedure?', keys:['reusable','modularity','different','values','debug','test','maintain'], concepts:[{term:'reusability',weight:2},{term:'modular',weight:2},{term:'different values',weight:1},{term:'debug|test|maintain',weight:1}], model:'Parameters make code <b>reusable</b> and <b>modular</b>. The procedure can work with <b>different values</b> each time it is called, and is easier to test, debug, and maintain.' },
+  { q:'If <code>CalculateArea(5, 10)</code> calls <code>PROCEDURE CalculateArea(Length, Width)</code>, what value does <code>Width</code> hold and why?', keys:['10','width','second','first','order'], concepts:[{term:'10',weight:2},{term:'position',weight:2},{term:'second',weight:1}], model:'<code>Width = 10</code>. Arguments are matched to parameters <b>by position</b>: the first argument (5) goes to Length, the <b>second</b> argument (10) goes to Width.' },
+  { q:'Explain what <b>BYVAL</b> (by value) means when passing a parameter. Give an example of when you would use it.', keys:['copy','change','affect'], concepts:[{term:'copy',weight:3},{term:'not.*change|not.*affect|original.*same',weight:2}], model:'<b>BYVAL</b> means a <b>copy</b> of the argument is passed. Changes inside the procedure do <b>not affect the original</b> variable. Use it when you only need to read a value without modifying it.' },
   { q:'Explain what <b>BYREF</b> (by reference) means. When would you use it?', keys:['reference','original','change','affect','modify','swap','update'], concepts:[{term:'reference',weight:2},{term:'original.*change|change.*original|affect.*original',weight:3},{term:'swap|update',weight:1}], model:'<b>BYREF</b> means the procedure receives a <b>reference to the original variable</b>. Changes inside the procedure <b>do affect</b> the original. Useful when the procedure needs to modify the caller\'s variable, e.g. a <b>Swap</b> procedure.' },
   { q:'What does <code>Result ← Triple(Triple(2))</code> evaluate to, if the function <code>Triple</code> returns <code>N * 3</code>? Explain your working.', keys:['6','18','triple','inner','outer','first'], concepts:[{term:'6',weight:2},{term:'18',weight:3},{term:'inner|first|Triple\\(2\\)',weight:1}], model:'First, the inner call: <code>Triple(2) = 6</code>. Then the outer call: <code>Triple(6) = 18</code>. So <b>Result = 18</b>. A function\'s return value can be used as an argument to another call.' },
-  { q:'What happens if you call a procedure with the <b>wrong number of arguments</b>? Why?', keys:['error','match','number','count','parameter','expect'], concepts:[{term:'error',weight:3},{term:'match|must match',weight:2},{term:'number.*parameter|count',weight:1}], model:'You get an <b>error</b>. The number of arguments in the call <b>must exactly match</b> the number of parameters in the definition.' },
+  { q:'What happens if you call a procedure with the <b>wrong number of arguments</b>? Why?', keys:['error','match','number','parameter'], concepts:[{term:'error',weight:3},{term:'match|must match',weight:2},{term:'number.*parameter|count',weight:1}], model:'You get an <b>error</b>. The number of arguments in the call <b>must exactly match</b> the number of parameters in the definition.' },
   { q:'What is a <b>local variable</b>? How does it relate to parameters?', keys:['local','inside','procedure','function','created','destroyed','parameter','exist'], concepts:[{term:'inside.*procedure|inside.*function|only.*inside',weight:2},{term:'created.*call|destroyed.*end|exist.*inside',weight:2},{term:'parameter.*local',weight:1}], model:'A <b>local variable</b> exists only <b>inside</b> the procedure/function. Parameters behave like local variables — they are <b>created when called</b> and <b>destroyed when it ends</b>, so they don\'t clash with variables of the same name elsewhere.' },
   { q:'Why is it considered good practice to use <b>meaningful parameter names</b>? Give an example.', keys:['self','document','clear','understand','readable','length','width','meaningful'], concepts:[{term:'self.document|readab|clear|understand',weight:2},{term:'Length|Width|example',weight:2}], model:'Meaningful names make code <b>self-documenting</b>. <code>CalculateArea(Length, Width)</code> is immediately clear, while <code>CalculateArea(A, B)</code> requires the reader to guess what A and B represent.' },
   { q:'Can a function call another function? Write a short pseudocode example to support your answer.', keys:['yes','function','call','return','another','inside'], concepts:[{term:'yes',weight:1},{term:'FUNCTION|RETURN',weight:2},{term:'call.*another|function.*call.*function',weight:2}], model:'<b>Yes.</b> For example: <code>FUNCTION FinalBill(Price, Qty) RETURNS REAL</code> could contain <code>RETURN AddTax(Price * Qty)</code> — calling <code>AddTax</code> from inside <code>FinalBill</code>.' },
@@ -1094,8 +1094,18 @@ const quiz = [
 let curQ = 0;
 
 // ── DD quiz state ─────────────────────────────────────────────────────────────
-const quizDDState = {};   // { qIdx: { slotKey: placedValue } }
-let quizDDSelected = null; // chip value currently held (click-to-place mode)
+const quizDDState = {};      // { qIdx: { slotKey: placedValue } }
+const quizDDBankOrder = {};  // { qIdx: shuffled bank array } — fixed per visit
+let quizDDSelected = null;   // chip value currently held (click-to-place mode)
+
+function shuffleArr(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 function escH(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1178,8 +1188,9 @@ function renderQuizDDContent(qIdx) {
   const ddArea = document.getElementById('quizDDArea');
 
   if (q.type === 'fill') {
+    if (!quizDDBankOrder[qIdx]) quizDDBankOrder[qIdx] = shuffleArr(q.bank);
     const placed = Object.values(state);
-    const bankTokens = [...q.bank];
+    const bankTokens = [...quizDDBankOrder[qIdx]];
     placed.forEach(v => { const i = bankTokens.indexOf(v); if (i !== -1) bankTokens.splice(i, 1); });
     let codeHtml = escH(q.code);
     Object.keys(q.answers).forEach(i => {
@@ -1194,8 +1205,9 @@ function renderQuizDDContent(qIdx) {
       <div class="qdd-bank" id="qddBank">${bankTokens.map(t=>`<span class="qdd-chip" draggable="true" data-val="${escH(t)}">${escH(t)}</span>`).join('')}</div>`;
 
   } else if (q.type === 'match') {
+    if (!quizDDBankOrder[qIdx]) quizDDBankOrder[qIdx] = shuffleArr(q.pairs.map(p => p.def));
     const placedDefs = Object.values(state);
-    const bankDefs = q.pairs.map(p => p.def).filter(d => !placedDefs.includes(d));
+    const bankDefs = quizDDBankOrder[qIdx].filter(d => !placedDefs.includes(d));
     const pairsHtml = q.pairs.map((p,i) => {
       const val = state[i];
       const slot = val
@@ -1210,11 +1222,12 @@ function renderQuizDDContent(qIdx) {
       </div>`;
 
   } else if (q.type === 'categorise') {
+    if (!quizDDBankOrder[qIdx]) quizDDBankOrder[qIdx] = shuffleArr(q.items);
     const bucketsHtml = q.buckets.map((b,bi) => {
       const items = q.items.filter(item => state[item.text] === bi);
       return `<div class="qdd-bucket"><div class="qdd-bucket-title">${escH(b)}</div><div class="qdd-bucket-zone" data-bucket="${bi}">${items.map(item=>`<span class="qdd-chip qdd-in-bucket" draggable="true" data-val="${escH(item.text)}">${escH(item.text)}</span>`).join('')}</div></div>`;
     }).join('');
-    const bankItems = q.items.filter(item => state[item.text] === undefined);
+    const bankItems = quizDDBankOrder[qIdx].filter(item => state[item.text] === undefined);
     ddArea.innerHTML = `
       <div class="qdd-cat-wrap">
         <div class="qdd-buckets">${bucketsHtml}</div>
@@ -1442,7 +1455,7 @@ const tasks=[
 {t:'Write a Call',d:'easy',
   pseudoKeys:['DisplayMessage','Well done!','3','CALL'],
   javaKeys:['displayMessage','Well done','3'],
-  b:`Given:\n<pre>PROCEDURE DisplayMessage(Msg : STRING, Times : INTEGER)\n    DECLARE i : INTEGER\n    FOR i ← 1 TO Times\n        OUTPUT Msg\n    NEXT i\nENDPROCEDURE</pre>\nWrite a call that displays <code>"Well done!"</code> three times. Then rewrite in <b>Java</b>.\n<div class="task-hint">💡 In Java, use camelCase: <code>displayMessage("Well done!", 3);</code></div>`},
+  b:`Given:\n<pre>PROCEDURE DisplayMessage(Msg : STRING, Times : INTEGER)\n    DECLARE i : INTEGER\n    FOR i ← 1 TO Times\n        OUTPUT Msg\n    NEXT i\nENDPROCEDURE</pre>\nWrite a call that displays <code>"Well done!"</code> three times. Then rewrite in <b>Java</b>.\n`},
 
   /* Task 6 */
 {t:'Procedure vs Function',d:'easy',
@@ -1472,7 +1485,7 @@ const tasks=[
   javaKeys:['double','addGST','price','return','1.15','230'],
   b:`<p><strong>(a)</strong> Write a function, AddGST(), in <code>pseudocode</code> that takes a REAL parameter, <code>Price</code>. Your function should return the updated Price after 15% tax has been added to the parameter's value.</p>
   <p>
-  <strong>(b)</strong> Write an assignment statement which invokes your function and passes 20.95 as its argument.
+  <strong>(b)</strong> Write an assignment statement which invokes (calls) your function and passes 20.95 as its argument.
   </p>
   <p>
   <strong>(c)</strong> Re-write your pseudocode function in <code>Java</code>.
