@@ -1018,9 +1018,88 @@ const quiz = [
   { q:'Why is it considered good practice to use <b>meaningful parameter names</b>? Give an example.', keys:['self','document','clear','understand','readable','length','width','meaningful'], concepts:[{term:'self.document|readab|clear|understand',weight:2},{term:'Length|Width|example',weight:2}], model:'Meaningful names make code <b>self-documenting</b>. <code>CalculateArea(Length, Width)</code> is immediately clear, while <code>CalculateArea(A, B)</code> requires the reader to guess what A and B represent.' },
   { q:'Can a function call another function? Write a short pseudocode example to support your answer.', keys:['yes','function','call','return','another','inside'], concepts:[{term:'yes',weight:1},{term:'FUNCTION|RETURN',weight:2},{term:'call.*another|function.*call.*function',weight:2}], model:'<b>Yes.</b> For example: <code>FUNCTION FinalBill(Price, Qty) RETURNS REAL</code> could contain <code>RETURN AddTax(Price * Qty)</code> — calling <code>AddTax</code> from inside <code>FinalBill</code>.' },
   { q:'What is the return type of this function and why?<pre>FUNCTION IsEven(N : INTEGER) RETURNS ???\n    RETURN (N MOD 2 = 0)\nENDFUNCTION</pre>', keys:['boolean','true','false','mod','condition','expression'], concepts:[{term:'BOOLEAN',weight:3},{term:'TRUE|FALSE',weight:2},{term:'condition|expression|MOD',weight:1}], model:'The return type is <b>BOOLEAN</b>. The expression <code>N MOD 2 = 0</code> evaluates to either <b>TRUE</b> or <b>FALSE</b>.' },
+
+  // ── Drag-and-drop questions (Q13–Q20) ──────────────────────────────────────
+
+  { type:'match', q:'<b>Match</b> each term on the left to its correct definition.',
+    pairs:[
+      { term:'Parameter',  def:'A named variable in the procedure or function definition' },
+      { term:'Argument',   def:'The actual value passed when calling a module' },
+      { term:'RETURN',     def:'Sends a value back from a function to the calling code' },
+      { term:'BYREF',      def:'The parameter is a reference to the original variable' },
+    ],
+    model:'<b>Parameter</b> = placeholder in the definition; <b>Argument</b> = value at the call; <b>RETURN</b> = sends value back; <b>BYREF</b> = passes reference so changes affect the original.' },
+
+  { type:'fill', q:'Drag the correct keywords to complete this <b>procedure definition</b>.',
+    code:'PROCEDURE Greet(Name : {{0}})\n    OUTPUT "Hello, " & Name\n{{1}}',
+    bank:['STRING','ENDPROCEDURE','FUNCTION','INTEGER','ENDFUNCTION'],
+    answers:{ 0:'STRING', 1:'ENDPROCEDURE' },
+    model:'<code>STRING</code> is the correct data type for a text parameter. The procedure ends with <code>ENDPROCEDURE</code> — not ENDFUNCTION, which closes a function.' },
+
+  { type:'categorise', q:'<b>Sort</b> each description into the correct category.',
+    buckets:['Procedure','Function'],
+    items:[
+      { text:'Does not return a value',            bucket:0 },
+      { text:'Returns a value using RETURN',       bucket:1 },
+      { text:'Called using the CALL keyword',      bucket:0 },
+      { text:'Result can be stored in a variable', bucket:1 },
+      { text:'Useful for actions like printing',   bucket:0 },
+      { text:'Header includes RETURNS keyword',    bucket:1 },
+    ],
+    model:'<b>Procedures</b>: perform actions, no return value, called with CALL. <b>Functions</b>: always return a value, used in expressions, header declares the return type with RETURNS.' },
+
+  { type:'fill', q:'Drag the correct keywords to complete this <b>function definition</b>.',
+    code:'FUNCTION Square(N : INTEGER) {{0}} INTEGER\n    {{1}} N * N\n{{2}}',
+    bank:['RETURNS','RETURN','ENDFUNCTION','FUNCTION','ENDPROCEDURE','PROCEDURE'],
+    answers:{ 0:'RETURNS', 1:'RETURN', 2:'ENDFUNCTION' },
+    model:'<code>RETURNS INTEGER</code> declares the return type in the header. <code>RETURN N * N</code> sends the result back to the caller. The function closes with <code>ENDFUNCTION</code>.' },
+
+  { type:'match', q:'The function <code>Triple(N)</code> returns <code>N × 3</code>. <b>Match</b> each call to its return value.',
+    pairs:[
+      { term:'Triple(4)',          def:'12' },
+      { term:'Triple(10)',         def:'30' },
+      { term:'Triple(Triple(2))',  def:'18' },
+      { term:'Triple(0)',          def:'0'  },
+    ],
+    model:'<code>Triple(4)=12</code>, <code>Triple(10)=30</code>. For <code>Triple(Triple(2))</code>: inner call gives 6, outer call gives <b>18</b>. <code>Triple(0)=0</code>.' },
+
+  { type:'categorise', q:'<b>Sort</b> each statement about variables into the correct category.',
+    buckets:['Local to a module','Global to the program'],
+    items:[
+      { text:'Exists only while the module is running',        bucket:0 },
+      { text:'Accessible from anywhere in the program',        bucket:1 },
+      { text:'Parameters behave like these',                   bucket:0 },
+      { text:'Can cause unexpected side-effects if modified',  bucket:1 },
+      { text:'Created when the module is called',              bucket:0 },
+      { text:'Declared outside any procedure or function',     bucket:1 },
+    ],
+    model:'<b>Local</b> variables exist only inside a module — parameters are local variables. <b>Global</b> variables persist throughout the program and can cause unintended side-effects.' },
+
+  { type:'fill', q:'Drag the correct keywords to complete this <b>BYREF Swap procedure</b>.',
+    code:'PROCEDURE Swap({{0}} A : INTEGER, {{1}} B : INTEGER)\n    DECLARE Temp : INTEGER\n    Temp ← A\n    A ← B\n    B ← {{2}}\nENDPROCEDURE',
+    bank:['BYREF','BYVAL','Temp','A','B'],
+    answers:{ 0:'BYREF', 1:'BYREF', 2:'Temp' },
+    model:'Both parameters need <code>BYREF</code> so the procedure can modify the caller\'s original variables. <code>Temp</code> holds A\'s original value so it isn\'t lost when A is overwritten.' },
+
+  { type:'match', q:'<b>Match</b> each error to its most likely cause.',
+    pairs:[
+      { term:'Type mismatch',           def:'Passing a STRING where an INTEGER parameter is expected' },
+      { term:'Wrong argument count',    def:'Calling a procedure with 3 arguments when it has 2 parameters' },
+      { term:'Variable not accessible', def:'Using a local variable outside the module that declared it' },
+      { term:'Missing return value',    def:'Defining a FUNCTION without a RETURN statement' },
+    ],
+    model:'Types must match; argument count must equal parameter count; local variables exist only inside their module; a FUNCTION must always return a value.' },
 ];
 
 let curQ = 0;
+
+// ── DD quiz state ─────────────────────────────────────────────────────────────
+const quizDDState = {};   // { qIdx: { slotKey: placedValue } }
+let quizDDSelected = null; // chip value currently held (click-to-place mode)
+
+function escH(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 function getQuizData() { return progressCache.quiz || {}; }
 
@@ -1059,21 +1138,229 @@ function renderQuiz() {
   document.getElementById('quizPrev').disabled = curQ === 0;
   document.getElementById('quizNext').disabled = curQ === quiz.length - 1;
 
-  const input = document.getElementById('quizInput');
-  input.value = saved?.answer || '';
-  document.getElementById('quizAttemptInfo').textContent = saved?.attempts ? 'Attempts: ' + saved.attempts : '';
+  const isDd = q.type === 'fill' || q.type === 'match' || q.type === 'categorise';
+  document.getElementById('quizDDArea').classList.toggle('hidden', !isDd);
+  document.getElementById('quizDDSubmitWrap').classList.toggle('hidden', !isDd);
+  document.querySelector('.quiz-answer-area').classList.toggle('hidden', isDd);
 
+  if (isDd) {
+    // Restore saved placements into state if first visit after submit
+    if (saved?.placements && !quizDDState[curQ]) {
+      quizDDState[curQ] = Object.assign({}, saved.placements);
+    }
+    document.getElementById('quizDDAttemptInfo').textContent = saved?.attempts ? 'Attempts: ' + saved.attempts : '';
+    renderQuizDDContent(curQ);
+  } else {
+    const input = document.getElementById('quizInput');
+    input.value = saved?.answer || '';
+    document.getElementById('quizAttemptInfo').textContent = saved?.attempts ? 'Attempts: ' + saved.attempts : '';
+    const fb = document.getElementById('quizFeedback');
+    if (saved?.feedback) {
+      fb.innerHTML = saved.feedback;
+      fb.className = 'quiz-feedback ' + (saved.status === 'correct' ? 'qf-correct' : saved.status === 'partial' ? 'qf-partial' : 'qf-wrong');
+      fb.classList.remove('hidden');
+    } else {
+      fb.classList.add('hidden');
+      fb.className = 'quiz-feedback hidden';
+    }
+  }
+  renderQuizNav();
+}
+
+// ── DD Quiz Rendering ─────────────────────────────────────────────────────────
+
+function renderQuizDDContent(qIdx) {
+  const q = quiz[qIdx];
+  const saved = getQuizData()[qIdx];
+  if (!quizDDState[qIdx]) quizDDState[qIdx] = {};
+  const state = quizDDState[qIdx];
+  quizDDSelected = null;
+  const ddArea = document.getElementById('quizDDArea');
+
+  if (q.type === 'fill') {
+    const placed = Object.values(state);
+    const bankTokens = [...q.bank];
+    placed.forEach(v => { const i = bankTokens.indexOf(v); if (i !== -1) bankTokens.splice(i, 1); });
+    let codeHtml = escH(q.code);
+    Object.keys(q.answers).forEach(i => {
+      const val = state[parseInt(i)];
+      const slot = val
+        ? `<span class="qdd-slot qdd-filled" data-slot="${i}">${escH(val)}</span>`
+        : `<span class="qdd-slot qdd-empty" data-slot="${i}">?</span>`;
+      codeHtml = codeHtml.replace(escH(`{{${i}}}`), slot);
+    });
+    ddArea.innerHTML = `
+      <div class="qdd-code-wrap"><pre class="qdd-code">${codeHtml}</pre></div>
+      <div class="qdd-bank" id="qddBank">${bankTokens.map(t=>`<span class="qdd-chip" draggable="true" data-val="${escH(t)}">${escH(t)}</span>`).join('')}</div>`;
+
+  } else if (q.type === 'match') {
+    const placedDefs = Object.values(state);
+    const bankDefs = q.pairs.map(p => p.def).filter(d => !placedDefs.includes(d));
+    const pairsHtml = q.pairs.map((p,i) => {
+      const val = state[i];
+      const slot = val
+        ? `<span class="qdd-slot qdd-filled" data-term="${i}">${escH(val)}</span>`
+        : `<span class="qdd-slot qdd-empty" data-term="${i}">drop here</span>`;
+      return `<div class="qdd-pair"><span class="qdd-term">${escH(p.term)}</span>${slot}</div>`;
+    }).join('');
+    ddArea.innerHTML = `
+      <div class="qdd-match-wrap">
+        <div class="qdd-pairs">${pairsHtml}</div>
+        <div class="qdd-bank" id="qddBank">${bankDefs.map(d=>`<span class="qdd-chip qdd-def-chip" draggable="true" data-val="${escH(d)}">${escH(d)}</span>`).join('')}</div>
+      </div>`;
+
+  } else if (q.type === 'categorise') {
+    const bucketsHtml = q.buckets.map((b,bi) => {
+      const items = q.items.filter(item => state[item.text] === bi);
+      return `<div class="qdd-bucket"><div class="qdd-bucket-title">${escH(b)}</div><div class="qdd-bucket-zone" data-bucket="${bi}">${items.map(item=>`<span class="qdd-chip qdd-in-bucket" draggable="true" data-val="${escH(item.text)}">${escH(item.text)}</span>`).join('')}</div></div>`;
+    }).join('');
+    const bankItems = q.items.filter(item => state[item.text] === undefined);
+    ddArea.innerHTML = `
+      <div class="qdd-cat-wrap">
+        <div class="qdd-buckets">${bucketsHtml}</div>
+        <div class="qdd-bank" id="qddBank">${bankItems.map(item=>`<span class="qdd-chip" draggable="true" data-val="${escH(item.text)}">${escH(item.text)}</span>`).join('')}</div>
+      </div>`;
+  }
+
+  // Feedback (if already submitted)
   const fb = document.getElementById('quizFeedback');
   if (saved?.feedback) {
     fb.innerHTML = saved.feedback;
     fb.className = 'quiz-feedback ' + (saved.status === 'correct' ? 'qf-correct' : saved.status === 'partial' ? 'qf-partial' : 'qf-wrong');
     fb.classList.remove('hidden');
   } else {
-    fb.classList.add('hidden');
     fb.className = 'quiz-feedback hidden';
   }
+
+  bindQuizDD(qIdx);
+}
+
+function bindQuizDD(qIdx) {
+  const q = quiz[qIdx];
+  const ddArea = document.getElementById('quizDDArea');
+  const state = quizDDState[qIdx];
+
+  // Bank chips: click-to-select + drag
+  ddArea.querySelectorAll('.qdd-bank .qdd-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const val = chip.dataset.val;
+      if (quizDDSelected === val && chip.classList.contains('qdd-selected')) {
+        quizDDSelected = null;
+        ddArea.querySelectorAll('.qdd-chip').forEach(c => c.classList.remove('qdd-selected'));
+      } else {
+        quizDDSelected = val;
+        ddArea.querySelectorAll('.qdd-chip').forEach(c => c.classList.remove('qdd-selected'));
+        chip.classList.add('qdd-selected');
+      }
+    });
+    chip.addEventListener('dragstart', e => { quizDDSelected = chip.dataset.val; e.dataTransfer.setData('text/plain', quizDDSelected); });
+  });
+
+  // In-bucket chips (categorise): click or drag to return to bank
+  ddArea.querySelectorAll('.qdd-in-bucket').forEach(chip => {
+    chip.addEventListener('click', () => { delete state[chip.dataset.val]; renderQuizDDContent(qIdx); });
+    chip.addEventListener('dragstart', e => {
+      const val = chip.dataset.val;
+      delete state[val];
+      quizDDSelected = val;
+      e.dataTransfer.setData('text/plain', val);
+      setTimeout(() => renderQuizDDContent(qIdx), 0);
+    });
+  });
+
+  // Slots (fill + match): click to place selected chip, or drop target
+  ddArea.querySelectorAll('.qdd-slot').forEach(slot => {
+    slot.addEventListener('click', () => {
+      if (slot.classList.contains('qdd-filled')) {
+        if (q.type === 'fill') delete state[parseInt(slot.dataset.slot)];
+        else if (q.type === 'match') delete state[parseInt(slot.dataset.term)];
+        renderQuizDDContent(qIdx);
+      } else if (quizDDSelected !== null) {
+        placeChip(qIdx, slot, quizDDSelected);
+      }
+    });
+    slot.addEventListener('dragover', e => e.preventDefault());
+    slot.addEventListener('drop', e => {
+      e.preventDefault();
+      const val = e.dataTransfer.getData('text/plain') || quizDDSelected;
+      if (val) placeChip(qIdx, slot, val);
+    });
+  });
+
+  // Bucket zones (categorise): click or drop to place
+  ddArea.querySelectorAll('.qdd-bucket-zone').forEach(zone => {
+    zone.addEventListener('click', () => {
+      if (quizDDSelected !== null) {
+        state[quizDDSelected] = parseInt(zone.dataset.bucket);
+        quizDDSelected = null;
+        renderQuizDDContent(qIdx);
+      }
+    });
+    zone.addEventListener('dragover', e => e.preventDefault());
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      const val = e.dataTransfer.getData('text/plain') || quizDDSelected;
+      if (val) { state[val] = parseInt(zone.dataset.bucket); quizDDSelected = null; renderQuizDDContent(qIdx); }
+    });
+  });
+}
+
+function placeChip(qIdx, slot, val) {
+  const q = quiz[qIdx];
+  const state = quizDDState[qIdx];
+  if (q.type === 'fill') state[parseInt(slot.dataset.slot)] = val;
+  else if (q.type === 'match') state[parseInt(slot.dataset.term)] = val;
+  quizDDSelected = null;
+  renderQuizDDContent(qIdx);
+}
+
+function scoreQuizDD(qIdx) {
+  const q = quiz[qIdx];
+  const state = quizDDState[qIdx] || {};
+  let correct = 0, total = 0;
+  if (q.type === 'fill') {
+    Object.entries(q.answers).forEach(([slot, ans]) => { total++; if (state[parseInt(slot)] === ans) correct++; });
+  } else if (q.type === 'match') {
+    q.pairs.forEach((p,i) => { total++; if (state[i] === p.def) correct++; });
+  } else if (q.type === 'categorise') {
+    q.items.forEach(item => { total++; if (state[item.text] === item.bucket) correct++; });
+  }
+  const pct = correct / total;
+  let status, cls, heading;
+  if (pct === 1)    { status='correct'; cls='qf-correct'; heading=`✓ Perfect — all ${total} correct!`; }
+  else if (pct >= 0.5) { status='partial'; cls='qf-partial'; heading=`● ${correct} / ${total} correct — good start, but some are wrong.`; }
+  else              { status='wrong';   cls='qf-wrong';   heading=`✕ ${correct} / ${total} correct — review the material and try again.`; }
+  return { status, cls, html:`<strong>${heading}</strong><div class="qf-model"><b>Explanation:</b> ${q.model}</div>` };
+}
+
+async function submitQuizDD(qIdx) {
+  const q = quiz[qIdx];
+  const state = quizDDState[qIdx] || {};
+  // Check all slots are filled
+  let allFilled = true;
+  if (q.type === 'fill') allFilled = Object.keys(q.answers).every(i => state[parseInt(i)] !== undefined);
+  else if (q.type === 'match') allFilled = q.pairs.every((_,i) => state[i] !== undefined);
+  else if (q.type === 'categorise') allFilled = q.items.every(item => state[item.text] !== undefined);
+  if (!allFilled) {
+    const fb = document.getElementById('quizFeedback');
+    fb.innerHTML = '<strong>Place all items before submitting.</strong>';
+    fb.className = 'quiz-feedback qf-wrong';
+    fb.classList.remove('hidden');
+    return;
+  }
+  const result = scoreQuizDD(qIdx);
+  const prev = getQuizData()[qIdx] || { attempts:0 };
+  const saved = { placements: Object.assign({}, state), status: result.status, feedback: result.html, attempts: (prev.attempts||0)+1, time: Date.now() };
+  if (prev.status === 'correct') saved.status = 'correct';
+  progressCache.quiz[qIdx] = saved;
+  await saveQuizProgress(qIdx, saved);
+  const fb = document.getElementById('quizFeedback');
+  fb.innerHTML = result.html; fb.className = 'quiz-feedback ' + result.cls; fb.classList.remove('hidden');
+  document.getElementById('quizDDAttemptInfo').textContent = 'Attempts: ' + saved.attempts;
   renderQuizNav();
 }
+
+document.getElementById('quizDDSubmit').addEventListener('click', () => submitQuizDD(curQ));
 
 function analyseQuizAnswer(qIdx, answer) {
   const q = quiz[qIdx];
@@ -1102,6 +1389,8 @@ function analyseQuizAnswer(qIdx, answer) {
 }
 
 document.getElementById('quizSubmit').addEventListener('click', async () => {
+  const q = quiz[curQ];
+  if (q.type === 'fill' || q.type === 'match' || q.type === 'categorise') return; // handled by quizDDSubmit
   const answer = document.getElementById('quizInput').value.trim();
   if (!answer) { document.getElementById('quizFeedback').innerHTML = '<strong>Please type your answer first.</strong>'; document.getElementById('quizFeedback').className = 'quiz-feedback qf-wrong'; document.getElementById('quizFeedback').classList.remove('hidden'); return; }
   const result = analyseQuizAnswer(curQ, answer);
@@ -1205,7 +1494,7 @@ const tasks=[
 {t:'Function Calling a Procedure',d:'medium',
   pseudoKeys:['FUNCTION','PROCEDURE','CALL','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','CalculateTotal','PrintReceipt', 'ROUND', 'TotalCost', 'REAL', 'INTEGER', '2', '&', ','],
   javaKeys:['double','void','return','calculateTotal','printReceipt','println', 'price', 'quantity', 'item', 'totalCost'],
-  b:`Write a program with two modules in <strong>pseudocode</strong>:\n<ol><li>A <b>function</b>, <code>CalculateTotal()</code>, that takes <strong>two</strong> parameters, <code>Price</code> and <code>Quantity</code>, and returns <code>Price * Quantity</code> rounded to 2dp</li>\n<li>A <b>procedure</b>,<code>PrintReceipt()</code> that takes <strong>three</strong> parameters, <code>Item</code> (as a string), <code>Price</code> and <code>Quantity</code>. Declare a local variable <code>Total</code>, call <code>CalculateTotal()</code>, and output the item name and total cost (use the appropriate concatenation of strings with strings, and strings with non-strings</li></ol>\nAfter the two modules are written, write a statement that calls <code>PrintReceipt()</code> with the values "Notebook", 3.50 and 4.</br></br>Write what would be returned. 
+  b:`Write a program with two modules in <strong>pseudocode</strong>:\n<ol><li>A <b>function</b>, <code>CalculateTotal()</code>, that takes <strong>two</strong> parameters, <code>Price</code> and <code>Quantity</code>, and returns <code>Price * Quantity</code> rounded to 2dp</li>\n<li>A <b>procedure</b>,<code>PrintReceipt()</code> that takes <strong>three</strong> parameters, <code>Item</code> (as a string), <code>Price</code> and <code>Quantity</code>. Declare a local variable <code>Total</code>, call <code>CalculateTotal()</code>, and output the item name and total cost (use the appropriate concatenation of strings with strings, and strings with non-strings)</li></ol>\nAfter the two modules are written, write a statement that calls <code>PrintReceipt()</code> with the values "Notebook", 3.50 and 4.</br></br>Write what would be returned. 
   <p>
   Write the equivalent code in <strong>Java</strong> as well.
   </p>
