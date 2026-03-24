@@ -612,7 +612,7 @@ const LIB_FN_INFO = {
   ROUND:  { syntax:'ROUND(Number, DecimalPlaces)', desc:'Returns <b>Number</b> rounded to <b>DecimalPlaces</b> decimal places. Returns a <b>REAL</b>.' },
   MOD:    { syntax:'MOD(Dividend, Divisor)',        desc:'Returns the <b>remainder</b> after integer division. E.g. 17 ÷ 5 = 3 remainder 2, so MOD(17,5) = <b>2</b>. Commonly used to check odd/even or divisibility.' },
   DIV:    { syntax:'DIV(Dividend, Divisor)',        desc:'Returns the <b>integer quotient</b> — the whole-number part of division, discarding any remainder. Returns an <b>INTEGER</b>.' },
-  RANDOM: { syntax:'RANDOM()',                      desc:'Returns a random <b>REAL</b> number where 0 ≤ x &lt; 1 (can be 0, never exactly 1). Multiply and use DIV() to generate integers in a range.' },
+  RANDOM: { syntax:'RANDOM()',                      desc:'Returns a random <b>REAL</b> number where 0 ≤ x ≤ 1 (both 0 and 1 are possible). Multiply and use DIV() to generate integers in a range.' },
 };
 const STR_FN_INFO = {
   UCASE:     { syntax:'UCASE(String)',                    desc:'Converts all letters in <b>String</b> to <b>UPPERCASE</b>. Digits, spaces, and punctuation are unchanged. Returns a <b>STRING</b>.' },
@@ -632,7 +632,7 @@ const LIB_EXERCISES = [
   {fn:'DIV',    call:'DIV(7, 2)',       answer:'3',       opts:['3','3.5','4','2'],          hint:'7 ÷ 2 = 3.5. DIV truncates the .5 → <b>3</b>.'},
   {fn:'DIV',    call:'DIV(20, 4)',      answer:'5',       opts:['5','4','6','80'],           hint:'20 ÷ 4 = 5 exactly — no decimal to discard. DIV = <b>5</b>.'},
   {fn:'RANDOM', call:'TYPE returned by RANDOM()', answer:'REAL',    opts:['REAL','INTEGER','STRING','BOOLEAN'], hint:'RANDOM() always returns a <b>REAL</b> value, e.g. 0.4821. Use DIV to convert to INTEGER.'},
-  {fn:'RANDOM', call:'Range of RANDOM()',          answer:'0 to <1', opts:['0 to <1','0 to 1','1 to 10','-1 to 1'], hint:'RANDOM() can return 0 but <b>never</b> reaches 1. Range is 0 ≤ x &lt; 1.'},
+  {fn:'RANDOM', call:'Range of RANDOM()',          answer:'0 to 1',  opts:['0 to <1','0 to 1','1 to 10','-1 to 1'], hint:'RANDOM() can return both 0 and 1. Range is 0 ≤ x ≤ 1.'},
 ];
 
 const STR_EXERCISES = [
@@ -694,9 +694,9 @@ function renderLibSection(section) {
           <div class="lib-call-row">
             <code class="lib-call-code">${ex.call}</code>
             <span class="lib-arrow">→</span>
-            <span class="lib-result-slot${state.solved?' filled':''}" id="libSlot_${section}" data-correct="${ex.answer}" data-sec="${section}">${state.solved ? ex.answer : 'drop here'}</span>
+            <span class="lib-result-slot${state.solved?' filled':''}" id="libSlot_${section}" data-correct="${ex.answer.replace(/"/g,'&quot;')}" data-sec="${section}">${state.solved ? ex.answer : 'drop here'}</span>
           </div>
-          <div class="lib-answer-bank">${state.solved ? '' : opts.map(o=>`<span class="lib-chip" draggable="true" data-val="${o}">${o}</span>`).join('')}</div>
+          <div class="lib-answer-bank">${state.solved ? '' : opts.map(o=>`<span class="lib-chip" draggable="true" data-val="${o.replace(/"/g,'&quot;')}">${o}</span>`).join('')}</div>
           <div class="lib-hint${state.solved?'':' hidden'}">💡 ${ex.hint}</div>
           <div class="lib-ex-footer">
             ${state.exIdx > 0 ? `<button class="btn-sm lib-prev" data-sec="${section}">← Back</button>` : '<span></span>'}
@@ -1405,12 +1405,18 @@ function renderClassInsights(students) {
   if (!students.length) { el.classList.add('hidden'); return; }
 
   const scores = CONCEPT_MAP.map(c => {
-    const avg = students.reduce((sum, s) => {
+    let total = 0, count = 0;
+    students.forEach(s => {
+      const attempted = c.tasks.filter(i => s.tasks[i]?.status === 'done' || s.tasks[i]?.status === 'started').length;
+      if (!attempted) return;
       const done = c.tasks.filter(i => s.tasks[i]?.status === 'done').length;
-      return sum + (c.tasks.length ? done / c.tasks.length : 0);
-    }, 0) / students.length;
-    return { name: c.name, pct: Math.round(avg * 100) };
-  });
+      total += done / attempted;
+      count++;
+    });
+    return count ? { name: c.name, pct: Math.round(total / count * 100) } : null;
+  }).filter(Boolean);
+
+  if (!scores.length) { el.classList.add('hidden'); return; }
 
   const rows = scores.map(c => {
     const cls = c.pct >= 75 ? 'ins-strong' : c.pct >= 40 ? 'ins-developing' : 'ins-weak';
@@ -1450,11 +1456,13 @@ function showStudentInsights(s) {
   }
 
   const scores = CONCEPT_MAP.map(c => {
-    const done = c.tasks.filter(i => s.tasks[i]?.status === 'done').length;
-    const pending = c.tasks.filter(i => s.tasks[i]?.status !== 'done');
-    const pct = c.tasks.length ? done / c.tasks.length : 0;
-    return { name: c.name, done, total: c.tasks.length, pct, pending };
-  });
+    const attempted = c.tasks.filter(i => s.tasks[i]?.status === 'done' || s.tasks[i]?.status === 'started');
+    if (!attempted.length) return null;
+    const done = attempted.filter(i => s.tasks[i]?.status === 'done').length;
+    const pending = attempted.filter(i => s.tasks[i]?.status === 'started');
+    const pct = done / attempted.length;
+    return { name: c.name, hint: c.hint, done, total: attempted.length, pct, pending };
+  }).filter(Boolean);
 
   const strong     = scores.filter(c => c.pct >= 0.75);
   const developing = scores.filter(c => c.pct >= 0.25 && c.pct < 0.75);
