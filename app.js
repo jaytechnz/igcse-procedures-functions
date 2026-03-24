@@ -1241,23 +1241,23 @@ function autoSave(){
   }
 }
 
+function scoreKeys(code, keys, caseSensitive) {
+  const found=[], missed=[];
+  keys.forEach(k=>{
+    if(caseSensitive){ if(code.includes(k)) found.push(k); else missed.push(k); }
+    else { if(code.toUpperCase().includes(k.toUpperCase())) found.push(k); else missed.push(k); }
+  });
+  return { found, missed, pct: keys.length ? found.length/keys.length : 1 };
+}
+
 // Submit feedback — scores against both key sets, uses whichever is higher
 document.getElementById('submitAnswer').addEventListener('click', async ()=>{
   const code=$editor.value.trim();
   if(!code){$feedbackBox.innerHTML='<strong>Please type your answer first.</strong>';$feedbackBox.className='feedback-box fb-needs';$feedbackBox.classList.remove('hidden');return;}
   const t=tasks[curTask];
 
-  function scoreKeys(keys, caseSensitive) {
-    const found=[], missed=[];
-    keys.forEach(k=>{
-      if(caseSensitive){ if(code.includes(k)) found.push(k); else missed.push(k); }
-      else { if(code.toUpperCase().includes(k.toUpperCase())) found.push(k); else missed.push(k); }
-    });
-    return { found, missed, pct: found.length / keys.length };
-  }
-
-  const pseudo = scoreKeys(t.pseudoKeys, false);
-  const java   = scoreKeys(t.javaKeys,   true);
+  const pseudo = scoreKeys(code, t.pseudoKeys, false);
+  const java   = scoreKeys(code, t.javaKeys,   true);
   const usePseudo = pseudo.pct >= java.pct;
   const { found, missed, pct } = usePseudo ? pseudo : java;
   const langLabel = usePseudo ? 'Pseudocode' : 'Java';
@@ -1352,7 +1352,7 @@ async function refreshDashboard(){
         const taskName = encodeURIComponent(tasks[i]?.t || `Task ${i+1}`);
         const email = encodeURIComponent(s.email);
         const feedback = encodeURIComponent(s.feedback[i] || '');
-        const clickable = code ? `data-code="${encodeURIComponent(code)}" data-task="${i}" data-taskname="${taskName}" data-email="${email}" data-uid="${s.uid}" data-feedback="${feedback}"` : '';
+        const clickable = code ? `data-code="${encodeURIComponent(code)}" data-task="${i}" data-taskname="${taskName}" data-email="${email}" data-uid="${s.uid}" data-feedback="${feedback}" data-status="${st||''}"` : '';
         dots += `<span class="detail-dot ${cls}${code?' dd-clickable':''}" title="Task ${i+1}${code?' — click to view code':''}" ${clickable}>${i+1}</span>`;
       }
       dots += '</div>';
@@ -1399,11 +1399,12 @@ document.getElementById('dashBody').addEventListener('click', (e) => {
     decodeURIComponent(dot.dataset.code),
     parseInt(dot.dataset.task),
     dot.dataset.uid,
-    decodeURIComponent(dot.dataset.feedback || '')
+    decodeURIComponent(dot.dataset.feedback || ''),
+    dot.dataset.status
   );
 });
 
-function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFeedback) {
+function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFeedback, status) {
   let modal = document.getElementById('codeViewModal');
   if (!modal) {
     modal = document.createElement('div');
@@ -1421,6 +1422,7 @@ function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFee
         <div class="code-modal-question" id="codeModalQuestion"></div>
         <div class="code-modal-label">Student's response</div>
         <pre class="code-modal-body" id="codeModalBody"></pre>
+        <div id="codeModalMissed"></div>
         <div class="code-modal-label">Teacher feedback</div>
         <div class="code-modal-feedback-wrap">
           <textarea class="code-modal-feedback" id="codeModalFeedback" placeholder="Add feedback for this student..."></textarea>
@@ -1452,6 +1454,23 @@ function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFee
   document.getElementById('codeModalSub').textContent = email;
   document.getElementById('codeModalQuestion').innerHTML = tasks[taskIndex]?.b || '';
   document.getElementById('codeModalBody').textContent = code;
+
+  // Show missing keywords for in-progress (orange) tasks
+  const missedEl = document.getElementById('codeModalMissed');
+  if (status === 'started' && tasks[taskIndex]) {
+    const t = tasks[taskIndex];
+    const pseudo = scoreKeys(code, t.pseudoKeys, false);
+    const java   = scoreKeys(code, t.javaKeys,   true);
+    const missed = (pseudo.pct >= java.pct ? pseudo : java).missed;
+    if (missed.length) {
+      missedEl.innerHTML = `<div class="code-modal-missed"><span class="code-modal-missed-label">⚠ Missing keywords</span>${missed.map(k=>`<span class="code-modal-missed-chip">${k}</span>`).join('')}</div>`;
+    } else {
+      missedEl.innerHTML = '';
+    }
+  } else {
+    missedEl.innerHTML = '';
+  }
+
   document.getElementById('codeModalFeedback').value = existingFeedback;
   document.getElementById('codeModalSave').textContent = 'Save Feedback';
   document.getElementById('codeModalSave').disabled = false;

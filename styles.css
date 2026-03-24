@@ -1039,6 +1039,36 @@ body {
   background: var(--silver);
   max-height: 30vh;
 }
+.code-modal-missed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem;
+  padding: .65rem 1.25rem;
+  background: rgba(232,114,5,.08);
+  border-left: 3px solid var(--orange);
+}
+.code-modal-missed-label {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--orange);
+  flex-shrink: 0;
+  margin-right: .25rem;
+}
+.code-modal-missed-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .78rem;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
+  background: rgba(232,114,5,.15);
+  color: #92400e;
+  padding: .18rem .5rem;
+  border-radius: .25rem;
+  border: 1px solid rgba(232,114,5,.3);
+}
+
 .code-modal-feedback-wrap {
   padding: .75rem 1.25rem 1.25rem;
   display: flex;
