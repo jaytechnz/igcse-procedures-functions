@@ -766,9 +766,9 @@ const tasks=[
 
   /* Task 7 */
 {t:'Write a Procedure',d:'medium',
-  pseudoKeys:['PROCEDURE','DisplayTriangle','NumRows','DECLARE','FOR', 'NEXT', 'ENDPROCEDURE','OUTPUT','CALL', '←'],
-  javaKeys:['void','displayTriangle','numRows','for','System.out'],
-  b:`Write a procedure <code>DisplayTriangle()</code> that takes one integer parameter, <code>NumRows</code>; this is the number of rows that will make up a right-angled triangle of # symbols.</br>You will need to use <strong>two</strong> loops:
+  
+  javaKeys:['public', 'static', 'void','displayTriangle','rows', 'hashes','for','System.out.print', 'System.out.println'],
+  b:`Write a procedure <code>DisplayTriangle()</code> in <code>Java</code> that takes one integer parameter, <code>numRows</code>; this is the number of rows that will make up a right-angled triangle of # symbols.</br>You will need to use <strong>two</strong> loops:
   <ul>
   <li>Outer FOR loop: number of rows</li>
   <li>Nested FOR loop: number of # symbols on each row</li>
@@ -778,7 +778,7 @@ const tasks=[
   <p>
   Write two calls for two different triangles (one with 5 rows and one with 10 rows).
   </p>
-  <p>Write your procedure and CALL statements in <code>pseudocode</code>.</p><div class="task-hint">💡 Pseudocode: Use <code>Rows</code> and <code>Hashes</code> for your loop counters.<br>`},
+  <p>Write your procedure and call it.</p><div class="task-hint">💡 Pseudocode: Use <code>rows</code> and <code>hashes</code> for your loop counters.<p>💡  Copy and paste your code into pseudocode.pro to see your triangles displayed.<br>`},
 
   /* Task 8 */
 {t:'Write a Function',d:'medium',
