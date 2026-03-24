@@ -981,10 +981,10 @@ body {
   background: #fff;
   border-radius: .75rem;
   width: min(700px, 90vw);
-  max-height: 80vh;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
   box-shadow: 0 8px 32px rgba(0,0,0,.25);
 }
 .code-modal-header {
@@ -1037,7 +1037,6 @@ body {
   word-break: normal;
   margin: 0;
   background: var(--silver);
-  max-height: 30vh;
 }
 .code-modal-missed {
   display: flex;
