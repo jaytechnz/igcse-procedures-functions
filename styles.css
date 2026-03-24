@@ -1032,7 +1032,8 @@ body {
   font-variant-ligatures: none;
   font-feature-settings: "liga" 0, "calt" 0;
   color: var(--navy);
-  white-space: pre;
+  white-space: pre-wrap;
+  word-break: break-all;
   margin: 0;
   background: var(--silver);
   max-height: 30vh;
