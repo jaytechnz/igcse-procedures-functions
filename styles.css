@@ -1069,6 +1069,27 @@ body {
   border: 1px solid rgba(232,114,5,.3);
 }
 
+.code-modal-feedback-saved {
+  padding: .75rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  background: #fff;
+}
+.code-modal-feedback-display {
+  background: rgba(13,27,82,.06);
+  border-left: 3px solid var(--navy);
+  padding: .65rem .9rem;
+  border-radius: 0 .4rem .4rem 0;
+  font-size: .88rem;
+  color: var(--navy);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+.code-modal-edit { align-self: flex-end; }
+
 .code-modal-feedback-wrap {
   padding: .75rem 1.25rem 1.25rem;
   display: flex;
@@ -1924,6 +1945,29 @@ body {
   color: var(--navy);
 }
 
+
+.task-teacher-feedback {
+  margin-top: 1rem;
+  padding: .7rem .9rem;
+  background: rgba(13,27,82,.06);
+  border-left: 3px solid var(--navy);
+  border-radius: 0 6px 6px 0;
+  font-size: .88rem;
+  color: var(--navy);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.task-teacher-feedback-label {
+  display: block;
+  font-size: .7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--navy);
+  opacity: .6;
+  margin-bottom: .3rem;
+}
 
 /* Code editor */
 

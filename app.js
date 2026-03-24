@@ -119,7 +119,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
           creatingAccount = true;
           const cred = await auth.createUserWithEmailAndPassword(email, pass);
           await db.collection('users').doc(cred.user.uid).set({ email, role: 'student', teacherUid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-          await db.collection('progress').doc(cred.user.uid).set({ tasks: {}, quiz: {} });
+          await db.collection('progress').doc(cred.user.uid).set({ tasks: {}, quiz: {}, teacherUid });
           currentUser = { uid: cred.user.uid, email, role: 'student', teacherUid };
         } else {
           creatingAccount = true;
@@ -173,7 +173,7 @@ auth.onAuthStateChanged(async (user) => {
           email: user.email, role, ...extra,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        await db.collection('progress').doc(user.uid).set({ tasks: {}, quiz: {} });
+        await db.collection('progress').doc(user.uid).set({ tasks: {}, quiz: {}, teacherUid: '' });
         currentUser = { uid: user.uid, email: user.email, role, ...extra };
       }
       enterApp();
@@ -267,7 +267,7 @@ async function saveQuizProgress(qIdx, data) {
 }
 
 // Local cache for snappy UI (synced to Firestore in background)
-let progressCache = { tasks: {}, quiz: {} };
+let progressCache = { tasks: {}, quiz: {}, feedback: {} };
 async function refreshCache() {
   progressCache = await loadProgress();
 }
@@ -1107,7 +1107,11 @@ function renderTask(){
   const taskData = progressCache.tasks || {};
   const saved=taskData[curTask];
   const bc={easy:'b-easy',medium:'b-medium',hard:'b-hard',challenge:'b-challenge'}[t.d];
-  $tCard.innerHTML=`<h3>Task ${curTask+1}: ${t.t} <span class="badge ${bc}">${t.d}</span></h3>${t.b}`;
+  const teacherFeedback = (progressCache.feedback || {})[curTask];
+  const feedbackBanner = teacherFeedback
+    ? `<div class="task-teacher-feedback"><span class="task-teacher-feedback-label">Teacher Feedback</span>${teacherFeedback}</div>`
+    : '';
+  $tCard.innerHTML=`<h3>Task ${curTask+1}: ${t.t} <span class="badge ${bc}">${t.d}</span></h3>${t.b}${feedbackBanner}`;
   $tPos.textContent=(curTask+1)+' / '+tasks.length;
   $tPrev.disabled=curTask===0;$tNext.disabled=curTask===tasks.length-1;
   $tFill.style.width=((curTask+1)/tasks.length*100)+'%';
@@ -1425,8 +1429,14 @@ function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFee
         <div id="codeModalMissed"></div>
         <div class="code-modal-label">Teacher feedback</div>
         <div class="code-modal-feedback-wrap">
-          <textarea class="code-modal-feedback" id="codeModalFeedback" placeholder="Add feedback for this student..."></textarea>
-          <button class="btn-sm code-modal-save" id="codeModalSave">Save Feedback</button>
+          <div class="code-modal-feedback-saved hidden" id="codeModalFeedbackSaved">
+            <div class="code-modal-feedback-display" id="codeModalFeedbackDisplay"></div>
+            <button class="btn-sm code-modal-edit" id="codeModalEdit">Edit Feedback</button>
+          </div>
+          <div class="code-modal-feedback-edit" id="codeModalFeedbackEdit">
+            <textarea class="code-modal-feedback" id="codeModalFeedback" placeholder="Add feedback for this student..."></textarea>
+            <button class="btn-sm code-modal-save" id="codeModalSave">Save Feedback</button>
+          </div>
         </div>
       </div>`;
     document.body.appendChild(modal);
@@ -1439,13 +1449,15 @@ function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFee
       btn.disabled = true;
       try {
         await db.collection('progress').doc(_modalUid).update({ [`feedback.${_modalTaskIndex}`]: feedback });
-        btn.textContent = '✓ Saved';
-        setTimeout(() => { btn.textContent = 'Save Feedback'; btn.disabled = false; }, 2000);
+        setFeedbackSavedState(feedback);
       } catch(err) {
         console.error('Feedback save error:', err);
         btn.textContent = 'Error — try again';
         btn.disabled = false;
       }
+    });
+    document.getElementById('codeModalEdit').addEventListener('click', () => {
+      setFeedbackEditState(document.getElementById('codeModalFeedbackDisplay').textContent);
     });
   }
   _modalUid = studentUid;
@@ -1471,10 +1483,27 @@ function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFee
     missedEl.innerHTML = '';
   }
 
-  document.getElementById('codeModalFeedback').value = existingFeedback;
-  document.getElementById('codeModalSave').textContent = 'Save Feedback';
-  document.getElementById('codeModalSave').disabled = false;
+  if (existingFeedback) {
+    setFeedbackSavedState(existingFeedback);
+  } else {
+    setFeedbackEditState('');
+  }
   modal.classList.remove('hidden');
+}
+
+function setFeedbackSavedState(text) {
+  document.getElementById('codeModalFeedbackDisplay').textContent = text;
+  document.getElementById('codeModalFeedbackSaved').classList.remove('hidden');
+  document.getElementById('codeModalFeedbackEdit').classList.add('hidden');
+  document.getElementById('codeModalSave').disabled = false;
+  document.getElementById('codeModalSave').textContent = 'Save Feedback';
+}
+
+function setFeedbackEditState(text) {
+  document.getElementById('codeModalFeedback').value = text;
+  document.getElementById('codeModalFeedbackSaved').classList.add('hidden');
+  document.getElementById('codeModalFeedbackEdit').classList.remove('hidden');
+  document.getElementById('codeModalFeedback').focus();
 }
 
 document.getElementById('deleteSelected').addEventListener('click', async () => {
