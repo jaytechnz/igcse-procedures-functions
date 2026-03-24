@@ -1088,6 +1088,19 @@ body {
   overflow-wrap: break-word;
 }
 .code-modal-edit { align-self: flex-end; }
+.code-modal-override {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .65rem 1.25rem;
+  background: rgba(91,0,11,.05);
+  border-top: 1px solid #ddd;
+}
+.code-modal-override.hidden { display: none; }
+.code-modal-override-hint {
+  font-size: .78rem;
+  color: #666;
+}
 
 .code-modal-feedback-wrap {
   padding: .75rem 1.25rem 1.25rem;

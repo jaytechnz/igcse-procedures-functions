@@ -1392,7 +1392,7 @@ document.getElementById('dashBody').addEventListener('change', (e) => {
   if (e.target.classList.contains('student-check')) updateDeleteBtn();
 });
 
-let _modalUid = null, _modalTaskIndex = null;
+let _modalUid = null, _modalTaskIndex = null, _modalStatus = null;
 
 document.getElementById('dashBody').addEventListener('click', (e) => {
   const dot = e.target.closest('.dd-clickable');
@@ -1427,6 +1427,10 @@ function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFee
         <div class="code-modal-label">Student's response</div>
         <pre class="code-modal-body" id="codeModalBody"></pre>
         <div id="codeModalMissed"></div>
+        <div class="code-modal-override hidden" id="codeModalOverrideWrap">
+          <button class="btn-accent code-modal-override-btn" id="codeModalOverride">✓ Mark as Correct</button>
+          <span class="code-modal-override-hint">Override the automatic score and mark this answer as complete.</span>
+        </div>
         <div class="code-modal-label">Teacher feedback</div>
         <div class="code-modal-feedback-wrap">
           <div class="code-modal-feedback-saved hidden" id="codeModalFeedbackSaved">
@@ -1459,9 +1463,31 @@ function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFee
     document.getElementById('codeModalEdit').addEventListener('click', () => {
       setFeedbackEditState(document.getElementById('codeModalFeedbackDisplay').textContent);
     });
+    document.getElementById('codeModalOverride').addEventListener('click', async () => {
+      const btn = document.getElementById('codeModalOverride');
+      btn.textContent = 'Saving...';
+      btn.disabled = true;
+      try {
+        await db.collection('progress').doc(_modalUid).update({ [`tasks.${_modalTaskIndex}.status`]: 'done' });
+        // Update dot in dashboard
+        const dot = document.querySelector(`.dd-clickable[data-uid="${_modalUid}"][data-task="${_modalTaskIndex}"]`);
+        if (dot) {
+          dot.classList.remove('dot-started','dot-new');
+          dot.classList.add('dot-done');
+          dot.dataset.status = 'done';
+        }
+        document.getElementById('codeModalOverrideWrap').classList.add('hidden');
+        _modalStatus = 'done';
+      } catch(err) {
+        console.error('Override error:', err);
+        btn.textContent = 'Error — try again';
+        btn.disabled = false;
+      }
+    });
   }
   _modalUid = studentUid;
   _modalTaskIndex = taskIndex;
+  _modalStatus = status;
   document.getElementById('codeModalTitle').textContent = taskName;
   document.getElementById('codeModalSub').textContent = email;
   document.getElementById('codeModalQuestion').innerHTML = tasks[taskIndex]?.b || '';
@@ -1481,6 +1507,16 @@ function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFee
     }
   } else {
     missedEl.innerHTML = '';
+  }
+
+  const overrideWrap = document.getElementById('codeModalOverrideWrap');
+  const overrideBtn = document.getElementById('codeModalOverride');
+  if (status !== 'done') {
+    overrideWrap.classList.remove('hidden');
+    overrideBtn.textContent = '✓ Mark as Correct';
+    overrideBtn.disabled = false;
+  } else {
+    overrideWrap.classList.add('hidden');
   }
 
   if (existingFeedback) {
