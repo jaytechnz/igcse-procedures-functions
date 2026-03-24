@@ -926,8 +926,7 @@ const tasks=[
 
   /* Task 2 */
 {t:'Predict the Output',d:'easy',
-  
-  javaKeys:['14','showDouble','System.out.println','void'],
+  javaKeys:['14','showDouble','System.out.println','void', 'public', 'static'],
   b:`(a) What does this output?\n<pre>PROCEDURE ShowDouble(X : INTEGER)\n    OUTPUT X * 2\nENDPROCEDURE\n\nCALL ShowDouble(7)</pre>\n(b) Rewrite in <b>Java</b> using correct naming conventions.\n<div class="task-hint">💡 In Java, use camelCase: <code>showDouble</code>.</div>`},
 
   /* Task 3 */
@@ -1342,7 +1341,7 @@ async function refreshDashboard(){
     $body.innerHTML = '';
     if (!students.length) { $body.innerHTML = '<tr><td colspan="8" style="text-align:center;opacity:.5;padding:1.5rem">No students have signed up yet.</td></tr>'; return; }
 
-    students.forEach(s => {
+    $body.innerHTML = students.map(s => {
       let done=0, started=0;
       for(let i=0;i<totalTasks;i++){ const st=s.tasks[i]?.status; if(st==='done') done++; else if(st==='started') started++; }
       const notStarted = totalTasks - done - started;
@@ -1363,7 +1362,7 @@ async function refreshDashboard(){
         dots += `<span class="detail-dot ${cls}${code?' dd-clickable':''}${feedbackCls}" title="Task ${i+1}${titleSuffix}" ${clickable}>${i+1}</span>`;
       }
       dots += '</div>';
-      $body.innerHTML += `<tr>
+      return `<tr>
         <td><input type="checkbox" class="student-check" data-uid="${s.uid}" data-email="${s.email}"></td>
         <td><strong>${s.email}</strong></td>
         <td><span class="badge-done">${done}</span></td>
@@ -1372,7 +1371,7 @@ async function refreshDashboard(){
         <td><span class="badge-done">${qCorrect} / ${totalQuiz}</span></td>
         <td>${qAttempts}</td>
         <td>${dots}</td></tr>`;
-    });
+    }).join('');
   } catch (err) {
     console.error('Dashboard error:', err);
     $body.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--burg);padding:1rem">Error loading data. Check Firebase console.</td></tr>';
@@ -1432,7 +1431,8 @@ function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFee
         <div id="codeModalMissed"></div>
         <div class="code-modal-override hidden" id="codeModalOverrideWrap">
           <button class="btn-accent code-modal-override-btn" id="codeModalOverride">✓ Mark as Correct</button>
-          <span class="code-modal-override-hint">Override the automatic score and mark this answer as complete.</span>
+          <button class="btn-sm code-modal-override-btn" id="codeModalMarkWrong">✗ Mark as Incorrect</button>
+          <span class="code-modal-override-hint" id="codeModalOverrideHint"></span>
         </div>
         <div class="code-modal-label">Teacher feedback</div>
         <div class="code-modal-feedback-wrap">
@@ -1475,18 +1475,29 @@ function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFee
       btn.disabled = true;
       try {
         await db.collection('progress').doc(_modalUid).update({ [`tasks.${_modalTaskIndex}.status`]: 'done' });
-        // Update dot in dashboard
         const dot = document.querySelector(`.dd-clickable[data-uid="${_modalUid}"][data-task="${_modalTaskIndex}"]`);
-        if (dot) {
-          dot.classList.remove('dot-started','dot-new');
-          dot.classList.add('dot-done');
-          dot.dataset.status = 'done';
-        }
+        if (dot) { dot.classList.remove('dd-prog','dd-none'); dot.classList.add('dd-done'); dot.dataset.status = 'done'; }
         document.getElementById('codeModalOverrideWrap').classList.add('hidden');
         _modalStatus = 'done';
       } catch(err) {
         console.error('Override error:', err);
-        btn.textContent = 'Error — try again';
+        btn.textContent = '✓ Mark as Correct';
+        btn.disabled = false;
+      }
+    });
+    document.getElementById('codeModalMarkWrong').addEventListener('click', async () => {
+      const btn = document.getElementById('codeModalMarkWrong');
+      btn.textContent = 'Saving...';
+      btn.disabled = true;
+      try {
+        await db.collection('progress').doc(_modalUid).update({ [`tasks.${_modalTaskIndex}.status`]: 'started' });
+        const dot = document.querySelector(`.dd-clickable[data-uid="${_modalUid}"][data-task="${_modalTaskIndex}"]`);
+        if (dot) { dot.classList.remove('dd-done','dd-none'); dot.classList.add('dd-prog'); dot.dataset.status = 'started'; }
+        document.getElementById('codeModalOverrideWrap').classList.add('hidden');
+        _modalStatus = 'started';
+      } catch(err) {
+        console.error('Override error:', err);
+        btn.textContent = '✗ Mark as Incorrect';
         btn.disabled = false;
       }
     });
@@ -1516,13 +1527,22 @@ function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFee
   }
 
   const overrideWrap = document.getElementById('codeModalOverrideWrap');
-  const overrideBtn = document.getElementById('codeModalOverride');
-  if (status !== 'done') {
-    overrideWrap.classList.remove('hidden');
-    overrideBtn.textContent = '✓ Mark as Correct';
-    overrideBtn.disabled = false;
+  const markCorrectBtn = document.getElementById('codeModalOverride');
+  const markWrongBtn = document.getElementById('codeModalMarkWrong');
+  const overrideHint = document.getElementById('codeModalOverrideHint');
+  overrideWrap.classList.remove('hidden');
+  markCorrectBtn.disabled = false;
+  markWrongBtn.disabled = false;
+  markCorrectBtn.textContent = '✓ Mark as Correct';
+  markWrongBtn.textContent = '✗ Mark as Incorrect';
+  if (status === 'done') {
+    markCorrectBtn.classList.add('hidden');
+    markWrongBtn.classList.remove('hidden');
+    overrideHint.textContent = 'Override the automatic score and flag this answer as needing revision.';
   } else {
-    overrideWrap.classList.add('hidden');
+    markCorrectBtn.classList.remove('hidden');
+    markWrongBtn.classList.add('hidden');
+    overrideHint.textContent = 'Override the automatic score and mark this answer as complete.';
   }
 
   if (existingFeedback) {
