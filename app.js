@@ -1082,19 +1082,18 @@ const tasks=[
 
 // Maps specific skills to 0-based task indices
 const CONCEPT_MAP = [
-  { name: 'Procedure anatomy',              hint: 'identifying name, parameter, argument and data type',            tasks: [0,1,2]        },
-  { name: 'Writing procedure calls',        hint: 'correct argument order and matching argument types',             tasks: [4,10]         },
-  { name: 'Defining procedures',            hint: 'PROCEDURE … ENDPROCEDURE with correctly typed parameters',       tasks: [3,5,6]        },
-  { name: 'Procedure vs function',          hint: 'when a module should return a value vs just perform an action',  tasks: [5,7]          },
-  { name: 'Functions with return values',   hint: 'FUNCTION … RETURN … ENDFUNCTION and assigning the result',       tasks: [7,8,12,13]    },
-  { name: 'Multiple parameters',            hint: 'defining and calling modules that take more than one argument',  tasks: [8,9,10]       },
-  { name: 'Local and global scope',         hint: 'local parameters are copies — changes do not affect the caller', tasks: [11]           },
-  { name: 'Modules calling other modules',  hint: 'invoking a function or procedure from within another module',    tasks: [9,13,14]      },
-  { name: 'Multi-module program design',    hint: 'organising a program into 3+ cooperating procedures and functions', tasks: [14,15,18,20,21] },
-  { name: 'Passing by reference (BYREF)',   hint: 'BYREF lets a procedure modify the caller\'s original variable',  tasks: [16,19]        },
-  { name: 'String operations in modules',   hint: 'LENGTH, SUBSTRING and character-by-character iteration',         tasks: [17]           },
-  { name: 'Array parameters',               hint: 'passing and processing arrays as parameters in modules',         tasks: [18]           },
-  { name: 'Input validation loops',         hint: 'WHILE loops combined with BOOLEAN validation functions',         tasks: [15,20]        },
+  { name: 'Procedures — basics to writing',  hint: 'identifying parts, tracing output, writing and defining procedures',        tasks: [0,1,2,3,4,5,6]    },
+  { name: 'Procedure vs function',           hint: 'when a module should return a value vs just perform an action',             tasks: [5,7]               },
+  { name: 'Functions with return values',    hint: 'FUNCTION … RETURN … ENDFUNCTION and assigning the result',                  tasks: [7,8,12,13]         },
+  { name: 'Argument type matching',          hint: 'argument types must match the parameter\'s declared data type',             tasks: [3,10]              },
+  { name: 'Multiple parameters',             hint: 'defining and calling modules that take more than one argument',             tasks: [8,9,10]            },
+  { name: 'Local and global scope',          hint: 'local parameters are copies — changes inside a module do not affect the caller', tasks: [11]          },
+  { name: 'Modules calling other modules',   hint: 'invoking a function or procedure from within another module',               tasks: [9,13,14]           },
+  { name: 'Multi-module program design',     hint: 'organising a program into 3+ cooperating procedures and functions',         tasks: [14,15,18,20,21]   },
+  { name: 'Passing by reference (BYREF)',    hint: 'BYREF lets a procedure modify the caller\'s original variable directly',    tasks: [16,19]            },
+  { name: 'String operations in modules',    hint: 'LENGTH, SUBSTRING and character-by-character iteration',                    tasks: [17]               },
+  { name: 'Array parameters',               hint: 'passing and processing arrays as parameters in modules',                    tasks: [18]               },
+  { name: 'Input validation loops',         hint: 'WHILE loops combined with BOOLEAN validation functions',                    tasks: [15,20]            },
 ];
 
 let _dashStudents = [];
