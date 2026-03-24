@@ -961,10 +961,22 @@ body {
 .dd-clickable {
   cursor: pointer;
   transition: transform .1s, opacity .1s;
+  position: relative;
 }
 .dd-clickable:hover {
   opacity: .75;
   transform: scale(1.2);
+}
+.dd-has-feedback::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--navy);
+  border: 1.5px solid #fff;
 }
 
 .code-modal-overlay {
