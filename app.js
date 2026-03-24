@@ -842,7 +842,7 @@ const tasks=[
 {t:'Multi-Function Program',d:'hard',
   pseudoKeys:['FUNCTION','PROCEDURE','RETURN','ENDFUNCTION','ENDPROCEDURE','DECLARE','CALL','GetArea','GetPerimeter','DescribeRectangle'],
   javaKeys:['double','void','return','getArea','getPerimeter','describeRectangle'],
-  b:`Write in CIE pseudocode <b>or</b> Java:\n<ol><li><code>GetArea(Length : REAL, Width : REAL) RETURNS REAL</code></li>\n<li><code>GetPerimeter(Length : REAL, Width : REAL) RETURNS REAL</code></li>\n<li><code>DescribeRectangle(Length : REAL, Width : REAL)</code> — a procedure that declares local variables for area and perimeter, calls both functions, and outputs the results</li></ol>\nWrite a main program that declares Length and Width, reads input, and calls DescribeRectangle.`},
+  b:`Write in the following modules in <code>pseudocode</code>:\n<ol><li><code>GetArea(Length : REAL, Width : REAL) RETURNS REAL</code></li>\n<li><code>GetPerimeter(Length : REAL, Width : REAL) RETURNS REAL</code></li>\n<li><code>DescribeRectangle(Length : REAL, Width : REAL)</code> — a procedure that declares local variables for area and perimeter, calls both functions, and outputs the results</li></ol>\nWrite a main program that declares <code>Length</code> and <code>Width</code>, reads input, and calls the <code>DescribeRectangle()</code> procedure.\n<div class="task-hint">💡 Pseudocode: Write <code>// Main</code> immediate above where your main program begins.</div>`},
 
   /* Task 16 */
 {t:'Validation Function',d:'hard',
