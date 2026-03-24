@@ -207,7 +207,7 @@ function buildTabs() {
   const tabs = document.getElementById('mainTabs');
   tabs.innerHTML = '';
   const items = currentUser.role === 'teacher'
-    ? [['demo','Teacher Demo'],['library','Library Routines'],['strings','String Handling'],['dashboard','Dashboard'],['questions','Quiz (View)'],['tasks','Tasks (View)']]
+    ? [['demo','Teacher Demo'],['library','Library Routines'],['strings','String Handling'],['dashboard','Dashboard'],['analytics','Analytics'],['questions','Quiz (View)'],['tasks','Tasks (View)']]
     : [['tasks','My Tasks'],['questions','Quiz']];
   items.forEach(([id, label]) => {
     const btn = document.createElement('button');
@@ -229,6 +229,7 @@ function switchView(id) {
   if (id === 'questions') renderQuiz();
   if (id === 'library') renderLibSection('library');
   if (id === 'strings') renderLibSection('strings');
+  if (id === 'analytics') renderAnalytics(_dashStudents);
 }
 
 function renderUserBadge() {
@@ -797,6 +798,211 @@ function handleLibDrop(section, val) {
 
 
 /* ══════════════════════════════════════════════
+   ANALYTICS
+   ══════════════════════════════════════════════ */
+
+function renderAnalytics(students) {
+  const el = document.getElementById('anlContent');
+  if (!el) return;
+  if (!students.length) {
+    el.innerHTML = '<p class="anl-empty">No student data yet — refresh the Dashboard first.</p>';
+    return;
+  }
+  el.innerHTML = [
+    anlIntervention(students),
+    anlTaskDifficulty(students),
+    anlMissingKeywords(students),
+    anlQuizDifficulty(students),
+    anlProgressTime(students),
+  ].join('');
+}
+
+function anlPanel(title, body) {
+  return `<div class="anl-panel"><div class="anl-panel-title">${title}</div>${body}</div>`;
+}
+
+/* ── 1. Intervention alerts ── */
+function anlIntervention(students) {
+  const notStarted = students.filter(s =>
+    !Object.values(s.tasks).some(t => t.status === 'done' || t.status === 'started')
+  );
+  const struggling = students.filter(s => {
+    const vals = Object.values(s.tasks);
+    const attempted = vals.filter(t => t.status === 'done' || t.status === 'started').length;
+    const done = vals.filter(t => t.status === 'done').length;
+    return attempted >= 3 && done / attempted < 0.3;
+  });
+  const noQuiz = students.filter(s => {
+    const hasDone = Object.values(s.tasks).some(t => t.status === 'done');
+    const hasQuiz = Object.values(s.quiz).some(q => (q.attempts || 0) > 0);
+    return hasDone && !hasQuiz;
+  });
+
+  if (!notStarted.length && !struggling.length && !noQuiz.length) {
+    return anlPanel('Students Needing Attention', '<p class="anl-ok">No alerts — all students are progressing well.</p>');
+  }
+
+  const group = (label, cls, list) => list.length ? `
+    <div class="anl-alert-group">
+      <div class="anl-alert-label ${cls}">${label}</div>
+      <div class="anl-alert-chips">${list.map(s => `<span class="anl-chip">${s.email}</span>`).join('')}</div>
+    </div>` : '';
+
+  return anlPanel('Students Needing Attention',
+    group('Not started any tasks', 'anl-alert-red', notStarted) +
+    group('Attempting tasks but rarely completing them', 'anl-alert-orange', struggling) +
+    group('Completed tasks but haven\'t attempted the quiz', 'anl-alert-blue', noQuiz)
+  );
+}
+
+/* ── 2. Task completion rates ── */
+function anlTaskDifficulty(students) {
+  const n = students.length;
+  const rows = tasks.map((t, i) => {
+    const done    = students.filter(s => s.tasks[i]?.status === 'done').length;
+    const started = students.filter(s => s.tasks[i]?.status === 'started').length;
+    const none    = n - done - started;
+    const stuckRatio = (done + started) > 0 ? started / (done + started) : 0;
+    const stuckFlag  = stuckRatio >= 0.5 && started >= 2 ? '<span class="anl-stuck-flag">high drop-off</span>' : '';
+    return `<div class="anl-task-row">
+      <div class="anl-task-label" title="${t.t}">T${i+1} <span class="anl-task-name">${t.t}</span>${stuckFlag}</div>
+      <div class="anl-stack-bar">
+        ${done    ? `<div class="anl-bar-done"    style="flex:${done}"    title="${done} done"></div>`    : ''}
+        ${started ? `<div class="anl-bar-started" style="flex:${started}" title="${started} in progress"></div>` : ''}
+        ${none    ? `<div class="anl-bar-none"    style="flex:${none}"    title="${none} not started"></div>`  : ''}
+      </div>
+      <div class="anl-task-pct">${Math.round(done/n*100)}%</div>
+    </div>`;
+  }).join('');
+
+  const legend = `<div class="anl-legend">
+    <span class="anl-leg anl-leg-done">Done</span>
+    <span class="anl-leg anl-leg-started">In progress</span>
+    <span class="anl-leg anl-leg-none">Not started</span>
+  </div>`;
+
+  return anlPanel('Task Completion Rates', legend + '<div class="anl-task-list">' + rows + '</div>');
+}
+
+/* ── 3. Common misconceptions ── */
+function anlMissingKeywords(students) {
+  const taskData = tasks.map((t, i) => {
+    const missCounts = {};
+    let withCode = 0;
+    students.forEach(s => {
+      const code = s.tasks[i]?.code;
+      if (!code) return;
+      withCode++;
+      const pseudo = scoreKeys(code, t.pseudoKeys, false);
+      const java   = scoreKeys(code, t.javaKeys,   true);
+      const missed = (pseudo.pct >= java.pct ? pseudo : java).missed;
+      missed.forEach(k => { missCounts[k] = (missCounts[k] || 0) + 1; });
+    });
+    const topMisses = Object.entries(missCounts)
+      .filter(([, c]) => c >= 2)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+    return { name: t.t, idx: i, topMisses, withCode };
+  }).filter(d => d.topMisses.length);
+
+  if (!taskData.length) {
+    return anlPanel('Common Misconceptions by Task', '<p class="anl-ok">Not enough data yet — students need to attempt more tasks.</p>');
+  }
+
+  const rows = taskData.map(d => {
+    const chips = d.topMisses.map(([k, c]) =>
+      `<span class="anl-kw-chip"><code>${k}</code><span class="anl-kw-count">${c}/${d.withCode}</span></span>`
+    ).join('');
+    return `<div class="anl-kw-row">
+      <div class="anl-kw-task">T${d.idx+1} — ${d.name}</div>
+      <div class="anl-kw-chips">${chips}</div>
+    </div>`;
+  }).join('');
+
+  return anlPanel('Common Misconceptions by Task',
+    '<p class="anl-sub">Keywords most frequently missing from student responses (min. 2 students)</p>' +
+    '<div class="anl-kw-list">' + rows + '</div>'
+  );
+}
+
+/* ── 4. Quiz question difficulty ── */
+function anlQuizDifficulty(students) {
+  const qData = quiz.map((q, i) => {
+    let correct = 0, totalAttempts = 0, attempted = 0;
+    students.forEach(s => {
+      const d = s.quiz[i];
+      if (!d || !(d.attempts > 0)) return;
+      attempted++;
+      if (d.status === 'correct') correct++;
+      totalAttempts += d.attempts || 0;
+    });
+    const pct = attempted ? Math.round(correct / attempted * 100) : null;
+    const avgAtt = attempted ? (totalAttempts / attempted).toFixed(1) : null;
+    return { idx: i, q: q.q, pct, avgAtt, attempted };
+  }).filter(d => d.attempted > 0)
+    .sort((a, b) => a.pct - b.pct);
+
+  if (!qData.length) {
+    return anlPanel('Quiz Question Difficulty', '<p class="anl-ok">No quiz attempts recorded yet.</p>');
+  }
+
+  const rows = qData.map(d => {
+    const cls = d.pct >= 75 ? 'anl-q-strong' : d.pct >= 40 ? 'anl-q-mid' : 'anl-q-weak';
+    const barW = d.pct ?? 0;
+    // Strip HTML tags from question for plain display
+    const qText = d.q.replace(/<[^>]+>/g, '');
+    return `<div class="anl-q-row">
+      <div class="anl-q-num">Q${d.idx+1}</div>
+      <div class="anl-q-text" title="${qText}">${qText}</div>
+      <div class="anl-q-bar-wrap"><div class="anl-q-bar ${cls}" style="width:${barW}%"></div></div>
+      <div class="anl-q-pct ${cls}">${d.pct}%</div>
+      <div class="anl-q-att">avg ${d.avgAtt} attempt${d.avgAtt==1?'':'s'}</div>
+    </div>`;
+  }).join('');
+
+  return anlPanel('Quiz Question Difficulty',
+    '<p class="anl-sub">Sorted by lowest score first. Based on students who have attempted each question.</p>' +
+    '<div class="anl-q-list">' + rows + '</div>'
+  );
+}
+
+/* ── 5. Progress over time ── */
+function anlProgressTime(students) {
+  const dayCounts = {};
+  students.forEach(s => {
+    Object.values(s.tasks).forEach(t => {
+      if (!t.time) return;
+      const day = new Date(t.time).toLocaleDateString('en-NZ', { day:'numeric', month:'short' });
+      const key = new Date(t.time).toISOString().slice(0, 10);
+      dayCounts[key] = dayCounts[key] || { label: day, count: 0 };
+      dayCounts[key].count++;
+    });
+  });
+
+  const entries = Object.entries(dayCounts).sort((a, b) => a[0].localeCompare(b[0]));
+  if (!entries.length) {
+    return anlPanel('Progress Over Time', '<p class="anl-ok">No timestamped data yet.</p>');
+  }
+
+  const max = Math.max(...entries.map(([, v]) => v.count));
+  const bars = entries.map(([, v]) => {
+    const h = Math.round(v.count / max * 100);
+    return `<div class="anl-time-col">
+      <div class="anl-time-bar-wrap">
+        <div class="anl-time-count">${v.count}</div>
+        <div class="anl-time-bar" style="height:${h}%"></div>
+      </div>
+      <div class="anl-time-label">${v.label}</div>
+    </div>`;
+  }).join('');
+
+  return anlPanel('Progress Over Time',
+    '<p class="anl-sub">Number of task submissions (done or in progress) per day.</p>' +
+    '<div class="anl-time-chart">' + bars + '</div>'
+  );
+}
+
+/* ══════════════════════════════════════════════
    QUIZ — students type answers, get feedback
    ══════════════════════════════════════════════ */
 const quiz = [
@@ -1360,6 +1566,7 @@ async function refreshDashboard(){
     if (!students.length) { $body.innerHTML = '<tr><td colspan="8" style="text-align:center;opacity:.5;padding:1.5rem">No students have signed up yet.</td></tr>'; return; }
 
     renderClassInsights(students);
+    renderAnalytics(students);
     $body.innerHTML = students.map(s => {
       let done=0, started=0;
       for(let i=0;i<totalTasks;i++){ const st=s.tasks[i]?.status; if(st==='done') done++; else if(st==='started') started++; }
@@ -1398,6 +1605,7 @@ async function refreshDashboard(){
 }
 
 document.getElementById('dashRefresh').addEventListener('click', refreshDashboard);
+document.getElementById('anlRefresh').addEventListener('click', () => { refreshDashboard(); });
 
 function renderClassInsights(students) {
   const el = document.getElementById('classInsights');
