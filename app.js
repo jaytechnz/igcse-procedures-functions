@@ -1121,7 +1121,7 @@ async function refreshDashboard(){
       const userData = userDoc.data();
       const progDoc = await db.collection('progress').doc(userDoc.id).get();
       const prog = progDoc.exists ? progDoc.data() : { tasks: {}, quiz: {} };
-      students.push({ uid: userDoc.id, email: userData.email, tasks: prog.tasks || {}, quiz: prog.quiz || {} });
+      students.push({ uid: userDoc.id, email: userData.email, tasks: prog.tasks || {}, quiz: prog.quiz || {}, feedback: prog.feedback || {} });
     }
     students.sort((a, b) => a.email.localeCompare(b.email));
 
@@ -1157,7 +1157,8 @@ async function refreshDashboard(){
         const code = s.tasks[i]?.code || '';
         const taskName = encodeURIComponent(tasks[i]?.t || `Task ${i+1}`);
         const email = encodeURIComponent(s.email);
-        const clickable = code ? `data-code="${encodeURIComponent(code)}" data-task="${i}" data-taskname="${taskName}" data-email="${email}"` : '';
+        const feedback = encodeURIComponent(s.feedback[i] || '');
+        const clickable = code ? `data-code="${encodeURIComponent(code)}" data-task="${i}" data-taskname="${taskName}" data-email="${email}" data-uid="${s.uid}" data-feedback="${feedback}"` : '';
         dots += `<span class="detail-dot ${cls}${code?' dd-clickable':''}" title="Task ${i+1}${code?' — click to view code':''}" ${clickable}>${i+1}</span>`;
       }
       dots += '</div>';
@@ -1193,17 +1194,22 @@ document.getElementById('dashBody').addEventListener('change', (e) => {
   if (e.target.classList.contains('student-check')) updateDeleteBtn();
 });
 
+let _modalUid = null, _modalTaskIndex = null;
+
 document.getElementById('dashBody').addEventListener('click', (e) => {
   const dot = e.target.closest('.dd-clickable');
   if (!dot || !dot.dataset.code) return;
   showCodeModal(
     decodeURIComponent(dot.dataset.email),
     decodeURIComponent(dot.dataset.taskname),
-    decodeURIComponent(dot.dataset.code)
+    decodeURIComponent(dot.dataset.code),
+    parseInt(dot.dataset.task),
+    dot.dataset.uid,
+    decodeURIComponent(dot.dataset.feedback || '')
   );
 });
 
-function showCodeModal(email, taskName, code) {
+function showCodeModal(email, taskName, code, taskIndex, studentUid, existingFeedback) {
   let modal = document.getElementById('codeViewModal');
   if (!modal) {
     modal = document.createElement('div');
@@ -1218,15 +1224,43 @@ function showCodeModal(email, taskName, code) {
           </div>
           <button class="code-modal-close" id="codeModalClose">✕</button>
         </div>
+        <div class="code-modal-question" id="codeModalQuestion"></div>
+        <div class="code-modal-label">Student's response</div>
         <pre class="code-modal-body" id="codeModalBody"></pre>
+        <div class="code-modal-label">Teacher feedback</div>
+        <div class="code-modal-feedback-wrap">
+          <textarea class="code-modal-feedback" id="codeModalFeedback" placeholder="Add feedback for this student..."></textarea>
+          <button class="btn-sm code-modal-save" id="codeModalSave">Save Feedback</button>
+        </div>
       </div>`;
     document.body.appendChild(modal);
     document.getElementById('codeModalClose').addEventListener('click', () => modal.classList.add('hidden'));
     modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
+    document.getElementById('codeModalSave').addEventListener('click', async () => {
+      const feedback = document.getElementById('codeModalFeedback').value.trim();
+      const btn = document.getElementById('codeModalSave');
+      btn.textContent = 'Saving...';
+      btn.disabled = true;
+      try {
+        await db.collection('progress').doc(_modalUid).update({ [`feedback.${_modalTaskIndex}`]: feedback });
+        btn.textContent = '✓ Saved';
+        setTimeout(() => { btn.textContent = 'Save Feedback'; btn.disabled = false; }, 2000);
+      } catch(err) {
+        console.error('Feedback save error:', err);
+        btn.textContent = 'Error — try again';
+        btn.disabled = false;
+      }
+    });
   }
+  _modalUid = studentUid;
+  _modalTaskIndex = taskIndex;
   document.getElementById('codeModalTitle').textContent = taskName;
   document.getElementById('codeModalSub').textContent = email;
+  document.getElementById('codeModalQuestion').innerHTML = tasks[taskIndex]?.b || '';
   document.getElementById('codeModalBody').textContent = code;
+  document.getElementById('codeModalFeedback').value = existingFeedback;
+  document.getElementById('codeModalSave').textContent = 'Save Feedback';
+  document.getElementById('codeModalSave').disabled = false;
   modal.classList.remove('hidden');
 }
 

@@ -1008,10 +1008,25 @@ body {
   line-height: 1;
   flex-shrink: 0;
 }
+.code-modal-question {
+  padding: 1rem 1.25rem;
+  font-size: .85rem;
+  color: var(--navy);
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+}
+.code-modal-label {
+  padding: .4rem 1.25rem;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: #888;
+  background: #fff;
+}
 .code-modal-body {
   padding: 1.25rem;
   overflow: auto;
-  flex: 1;
   font-family: 'JetBrains Mono', monospace;
   font-size: .85rem;
   font-variant-ligatures: none;
@@ -1020,7 +1035,29 @@ body {
   white-space: pre;
   margin: 0;
   background: var(--silver);
+  max-height: 30vh;
 }
+.code-modal-feedback-wrap {
+  padding: .75rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  background: #fff;
+}
+.code-modal-feedback {
+  width: 100%;
+  min-height: 80px;
+  padding: .6rem .8rem;
+  border: 1px solid #ccc;
+  border-radius: .4rem;
+  font-family: inherit;
+  font-size: .85rem;
+  resize: vertical;
+  box-sizing: border-box;
+  color: var(--navy);
+}
+.code-modal-feedback:focus { outline: 2px solid var(--navy); border-color: transparent; }
+.code-modal-save { align-self: flex-end; }
 
 .whitelist-editor {
   margin-top: 1rem;
