@@ -955,7 +955,7 @@ const tasks=[
   /* Task 6 */
 {t:'Procedure vs Function',d:'easy',
   pseudoKeys:['PROCEDURE','ENDPROCEDURE', 'INTEGER', 'return'],
-  javaKeys:['void','return','int','static','public'],
+  javaKeys:['return','int','static','public'],
   b:`<b>(a)</b> Explain the difference between a procedure and a function.<br><b>(b)</b> Write a procedure in pseudocode to output the square of its integer parameter.<br><b>(c)</b> Write a function in Java to return the higher of two parameters, <code>num1</code> and <code>num2</code>, or the first parameter if they are the same.\n<div class="task-hint">💡 Remember to start parameters with a capital letter in pseudocode.<br>💡 In Java code, remember to use camelCase spelling.<br>💡 For both pseudocode code AND Java, always use suitable line indentation!</div>`},
 
   /* Task 7 */
