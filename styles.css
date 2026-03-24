@@ -1033,7 +1033,8 @@ body {
   font-feature-settings: "liga" 0, "calt" 0;
   color: var(--navy);
   white-space: pre-wrap;
-  word-break: break-all;
+  overflow-wrap: break-word;
+  word-break: normal;
   margin: 0;
   background: var(--silver);
   max-height: 30vh;
