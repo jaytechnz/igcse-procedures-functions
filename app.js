@@ -207,7 +207,7 @@ function buildTabs() {
   const tabs = document.getElementById('mainTabs');
   tabs.innerHTML = '';
   const items = currentUser.role === 'teacher'
-    ? [['demo','Teacher Demo'],['dashboard','Dashboard'],['questions','Quiz (View)'],['tasks','Tasks (View)']]
+    ? [['demo','Teacher Demo'],['library','Library Routines'],['strings','String Handling'],['dashboard','Dashboard'],['questions','Quiz (View)'],['tasks','Tasks (View)']]
     : [['tasks','My Tasks'],['questions','Quiz']];
   items.forEach(([id, label]) => {
     const btn = document.createElement('button');
@@ -227,6 +227,8 @@ function switchView(id) {
   if (id === 'dashboard') refreshDashboard();
   if (id === 'tasks') renderTask();
   if (id === 'questions') renderQuiz();
+  if (id === 'library') renderLibSection('library');
+  if (id === 'strings') renderLibSection('strings');
 }
 
 function renderUserBadge() {
@@ -600,6 +602,198 @@ document.getElementById('langBtn').addEventListener('click',()=>{
 });
 document.getElementById('javaClose').addEventListener('click',()=>$javaOverlay.classList.add('hidden'));
 loadDemo(0);
+
+
+/* ══════════════════════════════════════════════
+   LIBRARY ROUTINES & STRING HANDLING DEMOS
+   ══════════════════════════════════════════════ */
+
+const LIB_FN_INFO = {
+  ROUND:  { syntax:'ROUND(Number, DecimalPlaces)', desc:'Returns <b>Number</b> rounded to <b>DecimalPlaces</b> decimal places. Returns a <b>REAL</b>.' },
+  MOD:    { syntax:'MOD(Dividend, Divisor)',        desc:'Returns the <b>remainder</b> after integer division. E.g. 17 ÷ 5 = 3 remainder 2, so MOD(17,5) = <b>2</b>. Commonly used to check odd/even or divisibility.' },
+  DIV:    { syntax:'DIV(Dividend, Divisor)',        desc:'Returns the <b>integer quotient</b> — the whole-number part of division, discarding any remainder. Returns an <b>INTEGER</b>.' },
+  RANDOM: { syntax:'RANDOM()',                      desc:'Returns a random <b>REAL</b> number where 0 ≤ x &lt; 1 (can be 0, never exactly 1). Multiply and use DIV() to generate integers in a range.' },
+};
+const STR_FN_INFO = {
+  UCASE:     { syntax:'UCASE(String)',                    desc:'Converts all letters in <b>String</b> to <b>UPPERCASE</b>. Digits, spaces, and punctuation are unchanged. Returns a <b>STRING</b>.' },
+  LCASE:     { syntax:'LCASE(String)',                    desc:'Converts all letters in <b>String</b> to <b>lowercase</b>. Digits, spaces, and punctuation are unchanged. Returns a <b>STRING</b>.' },
+  LENGTH:    { syntax:'LENGTH(String)',                   desc:'Returns the <b>number of characters</b> in <b>String</b>, including spaces and punctuation. Returns an <b>INTEGER</b>.' },
+  SUBSTRING: { syntax:'SUBSTRING(String, Start, Length)', desc:'Returns a portion of <b>String</b> starting at position <b>Start</b> (positions are <b>1-indexed</b>), taking <b>Length</b> characters. Returns a <b>STRING</b>.' },
+};
+
+const LIB_EXERCISES = [
+  {fn:'ROUND',  call:'ROUND(3.7, 0)',   answer:'4',       opts:['4','3','3.7','4.7'],        hint:'3.7 is closer to 4 than to 3, so it rounds <b>up</b> to 4.'},
+  {fn:'ROUND',  call:'ROUND(3.456, 2)', answer:'3.46',    opts:['3.46','3.45','3.4','3.5'],  hint:'The 3rd decimal is 6 (≥ 5), so the 2nd decimal rounds up: <b>3.46</b>.'},
+  {fn:'ROUND',  call:'ROUND(2.5, 0)',   answer:'3',       opts:['3','2','2.5','3.5'],        hint:'Exactly .5 always rounds <b>up</b> by convention → 3.'},
+  {fn:'MOD',    call:'MOD(17, 5)',      answer:'2',       opts:['2','3','5','12'],           hint:'17 = 3 × 5 + <b>2</b>. MOD gives the <b>remainder</b>.'},
+  {fn:'MOD',    call:'MOD(20, 4)',      answer:'0',       opts:['0','4','5','2'],            hint:'20 ÷ 4 = 5 with <b>no remainder</b>. MOD = 0. Tip: MOD(n,2)=0 means n is even!'},
+  {fn:'MOD',    call:'MOD(9, 2)',       answer:'1',       opts:['1','4','0','2'],            hint:'9 = 4 × 2 + <b>1</b>. MOD(9,2) ≠ 0, so 9 is <b>odd</b>.'},
+  {fn:'DIV',    call:'DIV(17, 5)',      answer:'3',       opts:['3','4','2','3.4'],          hint:'17 ÷ 5 = 3.4. DIV discards the decimal part → <b>3</b>.'},
+  {fn:'DIV',    call:'DIV(7, 2)',       answer:'3',       opts:['3','3.5','4','2'],          hint:'7 ÷ 2 = 3.5. DIV truncates the .5 → <b>3</b>.'},
+  {fn:'DIV',    call:'DIV(20, 4)',      answer:'5',       opts:['5','4','6','80'],           hint:'20 ÷ 4 = 5 exactly — no decimal to discard. DIV = <b>5</b>.'},
+  {fn:'RANDOM', call:'TYPE returned by RANDOM()', answer:'REAL',    opts:['REAL','INTEGER','STRING','BOOLEAN'], hint:'RANDOM() always returns a <b>REAL</b> value, e.g. 0.4821. Use DIV to convert to INTEGER.'},
+  {fn:'RANDOM', call:'Range of RANDOM()',          answer:'0 to <1', opts:['0 to <1','0 to 1','1 to 10','-1 to 1'], hint:'RANDOM() can return 0 but <b>never</b> reaches 1. Range is 0 ≤ x &lt; 1.'},
+];
+
+const STR_EXERCISES = [
+  {fn:'UCASE',     call:'UCASE("hello")',              answer:'"HELLO"',      opts:['"HELLO"','"Hello"','"HELL0"','"hello"'],        hint:'UCASE converts <b>every letter</b> to uppercase. Digits and spaces are unchanged.'},
+  {fn:'UCASE',     call:'UCASE("igcse 0478")',         answer:'"IGCSE 0478"', opts:['"IGCSE 0478"','"Igcse 0478"','"IGCSE0478"','"igcse 0478"'], hint:'Letters → uppercase; the <b>space and digits</b> stay exactly as they are.'},
+  {fn:'LCASE',     call:'LCASE("WORLD")',              answer:'"world"',      opts:['"world"','"World"','"WORLD"','"w0rld"'],         hint:'LCASE converts every letter to <b>lowercase</b>.'},
+  {fn:'LCASE',     call:'LCASE("CGA School")',         answer:'"cga school"', opts:['"cga school"','"cGA School"','"CGA school"','"cga School"'], hint:'<b>All</b> letters become lowercase — including the capital S in School.'},
+  {fn:'LENGTH',    call:'LENGTH("Cambridge")',          answer:'9',            opts:['9','8','10','7'],                               hint:'C·a·m·b·r·i·d·g·e — count them: <b>9</b> characters.'},
+  {fn:'LENGTH',    call:'LENGTH("Hello World")',        answer:'11',           opts:['11','10','12','9'],                             hint:'Don\'t forget the <b>space</b>! H·e·l·l·o·[sp]·W·o·r·l·d = <b>11</b>.'},
+  {fn:'LENGTH',    call:'LENGTH("IGCSE")',              answer:'5',            opts:['5','4','6','3'],                               hint:'I·G·C·S·E = <b>5</b> characters.'},
+  {fn:'SUBSTRING', call:'SUBSTRING("Hello", 1, 3)',    answer:'"Hel"',        opts:['"Hel"','"ell"','"He"','"Helo"'],               hint:'Start at position <b>1</b> (H), take <b>3</b> chars: H·e·l.'},
+  {fn:'SUBSTRING', call:'SUBSTRING("Computer", 3, 5)', answer:'"mpute"',      opts:['"mpute"','"omput"','"mput"','"mputer"'],        hint:'C=1, o=2, <b>m=3</b>. Take 5 chars: m·p·u·t·e.'},
+  {fn:'SUBSTRING', call:'SUBSTRING("Pseudocode", 7, 4)',answer:'"code"',      opts:['"code"','"ocod"','"Code"','"doco"'],            hint:'P=1 s=2 e=3 u=4 d=5 o=6 <b>c=7</b>. Take 4: c·o·d·e.'},
+];
+
+const libState = { fn:null, exIdx:0, solved:false };
+const strState = { fn:null, exIdx:0, solved:false };
+let libDragVal = null;
+
+function renderLibSection(section) {
+  const isLib = section === 'library';
+  const shell = document.getElementById(isLib ? 'libShell' : 'strShell');
+  if (!shell) return;
+  const exercises = isLib ? LIB_EXERCISES : STR_EXERCISES;
+  const fnInfo    = isLib ? LIB_FN_INFO   : STR_FN_INFO;
+  const state     = isLib ? libState       : strState;
+  const allFns    = Object.keys(fnInfo);
+  if (!state.fn) state.fn = allFns[0];
+
+  const fnExs  = exercises.filter(e => e.fn === state.fn);
+  if (state.exIdx >= fnExs.length) state.exIdx = 0;
+  const ex     = fnExs[state.exIdx];
+  const info   = fnInfo[state.fn];
+  const total  = fnExs.length;
+  const isLast = state.exIdx === total - 1;
+
+  // Shuffle options for display
+  const opts = [...ex.opts].sort(() => Math.random() - 0.5);
+
+  shell.innerHTML = `
+    <div class="lib-demo">
+      <div class="lib-topstrip">
+        ${allFns.map(fn => `<button class="lib-tab${state.fn===fn?' active':''}" data-fn="${fn}" data-sec="${section}">${fn}</button>`).join('')}
+      </div>
+      <div class="lib-content">
+        <div class="lib-syntax-card">
+          <div class="lib-syntax-row">
+            <span class="lib-syntax-tag">SYNTAX</span>
+            <code class="lib-syntax-code">${info.syntax}</code>
+          </div>
+          <p class="lib-syntax-desc">${info.desc}</p>
+        </div>
+        <div class="lib-exercise-card">
+          <div class="lib-ex-header">
+            <span class="lib-ex-num">Exercise ${state.exIdx+1} of ${total}</span>
+            <div class="lib-ex-dots">${[...Array(total).keys()].map(i=>`<span class="lib-ex-dot${i===state.exIdx?' current':i<state.exIdx?' done':''}"></span>`).join('')}</div>
+          </div>
+          <p class="lib-ex-question">What does this return?</p>
+          <div class="lib-call-row">
+            <code class="lib-call-code">${ex.call}</code>
+            <span class="lib-arrow">→</span>
+            <span class="lib-result-slot${state.solved?' filled':''}" id="libSlot_${section}" data-correct="${ex.answer}" data-sec="${section}">${state.solved ? ex.answer : 'drop here'}</span>
+          </div>
+          <div class="lib-answer-bank">${state.solved ? '' : opts.map(o=>`<span class="lib-chip" draggable="true" data-val="${o}">${o}</span>`).join('')}</div>
+          <div class="lib-hint${state.solved?'':' hidden'}">💡 ${ex.hint}</div>
+          <div class="lib-ex-footer">
+            ${state.exIdx > 0 ? `<button class="btn-sm lib-prev" data-sec="${section}">← Back</button>` : '<span></span>'}
+            ${state.solved && !isLast ? `<button class="btn-accent btn-sm lib-next" data-sec="${section}">Next →</button>` : ''}
+            ${state.solved && isLast  ? `<button class="btn-sm lib-restart" data-sec="${section}">↻ Try again</button>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  // Chip drag events
+  shell.querySelectorAll('.lib-chip').forEach(chip => {
+    chip.addEventListener('dragstart', e => {
+      libDragVal = chip.dataset.val;
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', libDragVal); } catch { /* browser fallback */ }
+      chip.classList.add('dragging');
+    });
+    chip.addEventListener('dragend', () => { chip.classList.remove('dragging'); libDragVal = null; });
+    let libClone = null;
+    chip.addEventListener('touchstart', e => {
+      libDragVal = chip.dataset.val;
+      const t = e.touches[0];
+      libClone = chip.cloneNode(true);
+      libClone.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;opacity:.85;transform:scale(1.1)';
+      libClone.style.left = (t.clientX-40)+'px'; libClone.style.top = (t.clientY-20)+'px';
+      document.body.appendChild(libClone); chip.classList.add('dragging');
+    },{passive:true});
+    chip.addEventListener('touchmove', e => {
+      if (!libClone) return;
+      const t = e.touches[0];
+      libClone.style.left = (t.clientX-40)+'px'; libClone.style.top = (t.clientY-20)+'px';
+      const slot = document.getElementById('libSlot_'+section);
+      if (slot) { const r=slot.getBoundingClientRect(); slot.classList.toggle('drag-over',t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom); }
+      e.preventDefault();
+    },{passive:false});
+    chip.addEventListener('touchend', e => {
+      if (libClone) { libClone.remove(); libClone=null; } chip.classList.remove('dragging');
+      const t = e.changedTouches[0];
+      const slot = document.getElementById('libSlot_'+section);
+      if (slot) { slot.classList.remove('drag-over'); const r=slot.getBoundingClientRect(); if(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom) handleLibDrop(section,libDragVal); }
+      libDragVal = null;
+    });
+  });
+
+  // Slot drop events
+  const slot = document.getElementById('libSlot_'+section);
+  if (slot) {
+    slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('drag-over'); });
+    slot.addEventListener('dragleave', () => slot.classList.remove('drag-over'));
+    slot.addEventListener('drop', e => { e.preventDefault(); slot.classList.remove('drag-over'); handleLibDrop(section, libDragVal||e.dataTransfer.getData('text/plain')); });
+  }
+
+  // Tab buttons
+  shell.querySelectorAll('.lib-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const st = btn.dataset.sec==='library' ? libState : strState;
+      st.fn=btn.dataset.fn; st.exIdx=0; st.solved=false;
+      renderLibSection(btn.dataset.sec);
+    });
+  });
+
+  // Next / Back / Restart
+  shell.querySelector('.lib-next')?.addEventListener('click', () => {
+    const st = section==='library' ? libState : strState;
+    st.exIdx++; st.solved=false; renderLibSection(section);
+  });
+  shell.querySelector('.lib-prev')?.addEventListener('click', () => {
+    const st = section==='library' ? libState : strState;
+    st.exIdx--; st.solved=false; renderLibSection(section);
+  });
+  shell.querySelector('.lib-restart')?.addEventListener('click', () => {
+    const st = section==='library' ? libState : strState;
+    st.exIdx=0; st.solved=false; renderLibSection(section);
+  });
+}
+
+function handleLibDrop(section, val) {
+  if (!val) return;
+  const slot = document.getElementById('libSlot_'+section);
+  if (!slot || slot.classList.contains('filled')) return;
+  const correct = slot.dataset.correct;
+  const state   = section==='library' ? libState : strState;
+  if (val===correct) {
+    state.solved = true;
+    renderLibSection(section);
+    const fnExs = (section==='library' ? LIB_EXERCISES : STR_EXERCISES).filter(e=>e.fn===state.fn);
+    if (state.exIdx===fnExs.length-1) {
+      const cel=document.createElement('div'); cel.className='confetti-layer'; document.body.appendChild(cel);
+      confetti(cel); setTimeout(()=>cel.remove(),3000);
+    }
+  } else {
+    slot.classList.add('wrong');
+    slot.textContent = val+' ✗';
+    setTimeout(()=>{ slot.classList.remove('wrong'); slot.textContent='drop here'; },700);
+  }
+}
 
 
 /* ══════════════════════════════════════════════
