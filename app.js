@@ -932,7 +932,6 @@ const tasks=[
   /* Task 3 */
 {t:'Fill in the Blanks',d:'easy',
   pseudoKeys:['Count','5'],
-  javaKeys:['count','5','printStars','}'],
   b:`Complete the gaps so the procedure prints 5 stars:\n<pre>PROCEDURE PrintStars(______ : INTEGER)\n    FOR I ← 1 TO Count\n        OUTPUT "*"\n    NEXT I\nENDPROCEDURE\n\nCALL PrintStars(______)</pre>\n<div class="task-hint">💡 The parameter name must match what's used in the loop.</div>`},
 
   /* Task 4 */
@@ -946,7 +945,7 @@ const tasks=[
 
   /* Task 5 */
 {t:'Write a Call',d:'easy',
-  pseudoKeys:['DisplayMessage','Well done','3','CALL'],
+  pseudoKeys:['DisplayMessage','Well done!','3','CALL'],
   javaKeys:['displayMessage','Well done','3'],
   b:`Given:\n<pre>PROCEDURE DisplayMessage(Msg : STRING, Times : INTEGER)\n    DECLARE i : INTEGER\n    FOR i ← 1 TO Times\n        OUTPUT Msg\n    NEXT i\nENDPROCEDURE</pre>\nWrite a call that displays <code>"Well done!"</code> three times. Then rewrite in <b>Java</b>.\n<div class="task-hint">💡 In Java, use camelCase: <code>displayMessage("Well done!", 3);</code></div>`},
 
@@ -1080,6 +1079,19 @@ const tasks=[
   b:`Build a menu-driven calculator. Declare all local variables in every module.\n<ol><li>Functions: <code>Add</code>, <code>Subtract</code>, <code>Multiply</code>, <code>Divide</code> — each takes two REAL parameters and returns REAL</li>\n<li><code>GetChoice() RETURNS INTEGER</code> — declare a local <code>Choice</code>, display menu, return choice</li>\n<li><code>GetNumber(Prompt : STRING) RETURNS REAL</code> — declare a local <code>Num</code>, display prompt, return number</li>\n<li>Main program with a WHILE loop, input validation, and division-by-zero handling</li></ol>\nWrite in CIE pseudocode <b>or</b> Java.\n<div class="task-hint">💡 Java: <code>public static int getChoice()</code> and <code>public static double getNumber(String prompt)</code></div>`},
 ];
 
+
+// Maps cognitive concepts to 0-based task indices
+const CONCEPT_MAP = [
+  { name: 'Procedures',             tasks: [0,1,2,3,4,5,6,9,13,14,15,18,19,21] },
+  { name: 'Functions',              tasks: [5,7,8,9,12,13,14,15,17,18,20,21]   },
+  { name: 'Parameters & Arguments', tasks: [0,1,2,3,4,6,7,8,10,15,16,17,18,19,21] },
+  { name: 'Return Values',          tasks: [7,8,12,13,14,17]                   },
+  { name: 'Local / Global Scope',   tasks: [11]                                },
+  { name: 'By Reference (BYREF)',   tasks: [16,19]                             },
+  { name: 'Modular Design',         tasks: [9,13,14,18,20,21]                  },
+];
+
+let _dashStudents = [];
 
 let curTask=0;
 const $tCard=document.getElementById('taskCard'),$tPos=document.getElementById('taskPos'),$tPrev=document.getElementById('prevTask'),$tNext=document.getElementById('nextTask'),$tFill=document.getElementById('taskFill'),$tSide=document.getElementById('taskSide');
@@ -1321,6 +1333,7 @@ async function refreshDashboard(){
       students.push({ uid: userDoc.id, email: userData.email, tasks: prog.tasks || {}, quiz: prog.quiz || {}, feedback: prog.feedback || {} });
     }
     students.sort((a, b) => a.email.localeCompare(b.email));
+    _dashStudents = students;
 
     const totalTasks = tasks.length;
     const totalQuiz = quiz.length;
@@ -1341,6 +1354,7 @@ async function refreshDashboard(){
     $body.innerHTML = '';
     if (!students.length) { $body.innerHTML = '<tr><td colspan="8" style="text-align:center;opacity:.5;padding:1.5rem">No students have signed up yet.</td></tr>'; return; }
 
+    renderClassInsights(students);
     $body.innerHTML = students.map(s => {
       let done=0, started=0;
       for(let i=0;i<totalTasks;i++){ const st=s.tasks[i]?.status; if(st==='done') done++; else if(st==='started') started++; }
@@ -1364,7 +1378,7 @@ async function refreshDashboard(){
       dots += '</div>';
       return `<tr>
         <td><input type="checkbox" class="student-check" data-uid="${s.uid}" data-email="${s.email}"></td>
-        <td><strong>${s.email}</strong></td>
+        <td><strong class="stu-ins-link" data-uid="${s.uid}" title="Click for student insights">${s.email}</strong></td>
         <td><span class="badge-done">${done}</span></td>
         <td><span class="badge-prog">${started}</span></td>
         <td><span class="badge-none">${notStarted}</span></td>
@@ -1379,6 +1393,99 @@ async function refreshDashboard(){
 }
 
 document.getElementById('dashRefresh').addEventListener('click', refreshDashboard);
+
+function renderClassInsights(students) {
+  const el = document.getElementById('classInsights');
+  if (!el) return;
+  if (!students.length) { el.classList.add('hidden'); return; }
+
+  const scores = CONCEPT_MAP.map(c => {
+    const avg = students.reduce((sum, s) => {
+      const done = c.tasks.filter(i => s.tasks[i]?.status === 'done').length;
+      return sum + (c.tasks.length ? done / c.tasks.length : 0);
+    }, 0) / students.length;
+    return { name: c.name, pct: Math.round(avg * 100) };
+  });
+
+  const rows = scores.map(c => {
+    const cls = c.pct >= 75 ? 'ins-strong' : c.pct >= 40 ? 'ins-developing' : 'ins-weak';
+    const label = c.pct >= 75 ? 'Strong' : c.pct >= 40 ? 'Developing' : 'Needs Work';
+    return `<div class="ins-row">
+      <div class="ins-concept-name">${c.name}</div>
+      <div class="ins-bar-track"><div class="ins-bar ${cls}" style="width:${c.pct}%"></div></div>
+      <div class="ins-pct">${c.pct}%</div>
+      <div class="ins-badge ${cls}">${label}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="ins-head">Class Insights <span class="ins-count">${students.length} student${students.length!==1?'s':''}</span></div><div class="ins-rows">${rows}</div>`;
+  el.classList.remove('hidden');
+}
+
+function showStudentInsights(s) {
+  let modal = document.getElementById('stuInsModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'stuInsModal';
+    modal.className = 'stu-ins-overlay hidden';
+    modal.innerHTML = `
+      <div class="stu-ins-box">
+        <div class="stu-ins-header">
+          <div>
+            <div class="stu-ins-title" id="stuInsTitle"></div>
+            <div class="stu-ins-sub">Individual Learning Profile</div>
+          </div>
+          <button class="stu-ins-close" id="stuInsClose">✕</button>
+        </div>
+        <div class="stu-ins-body" id="stuInsBody"></div>
+      </div>`;
+    document.body.appendChild(modal);
+    document.getElementById('stuInsClose').addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
+  }
+
+  const scores = CONCEPT_MAP.map(c => {
+    const done = c.tasks.filter(i => s.tasks[i]?.status === 'done').length;
+    const pending = c.tasks.filter(i => s.tasks[i]?.status !== 'done');
+    const pct = c.tasks.length ? done / c.tasks.length : 0;
+    return { name: c.name, done, total: c.tasks.length, pct, pending };
+  });
+
+  const strong     = scores.filter(c => c.pct >= 0.75);
+  const developing = scores.filter(c => c.pct >= 0.25 && c.pct < 0.75);
+  const weak       = scores.filter(c => c.pct < 0.25);
+
+  const conceptCard = (c, cls) =>
+    `<span class="stu-ins-concept ${cls}">${c.name} <em>${c.done}/${c.total}</em></span>`;
+
+  const section = (title, cls, list) => list.length ? `
+    <div class="stu-ins-section">
+      <div class="stu-ins-section-title ${cls}-title">${title}</div>
+      <div class="stu-ins-concepts">${list.map(c => conceptCard(c, cls)).join('')}</div>
+    </div>` : '';
+
+  const tips = [...developing, ...weak]
+    .filter(c => c.pending.length)
+    .map(c => {
+      const taskNums = c.pending.slice(0, 3).map(i => `Task ${i+1}`).join(', ');
+      return `<li>Work on <strong>${taskNums}</strong> to strengthen <strong>${c.name}</strong>.</li>`;
+    }).join('');
+
+  const tipsHtml = tips ? `
+    <div class="stu-ins-section">
+      <div class="stu-ins-section-title">Suggested Next Steps</div>
+      <ul class="stu-ins-tips">${tips}</ul>
+    </div>` : '<div class="stu-ins-section"><div class="stu-ins-section-title">All concepts covered — great work!</div></div>';
+
+  document.getElementById('stuInsTitle').textContent = s.email;
+  document.getElementById('stuInsBody').innerHTML =
+    section('Strengths', 'ins-strong', strong) +
+    section('Still Developing', 'ins-developing', developing) +
+    section('Needs Focus', 'ins-weak', weak) +
+    tipsHtml;
+
+  modal.classList.remove('hidden');
+}
 
 function updateDeleteBtn() {
   const anyChecked = document.querySelectorAll('.student-check:checked').length > 0;
@@ -1397,6 +1504,12 @@ document.getElementById('dashBody').addEventListener('change', (e) => {
 let _modalUid = null, _modalTaskIndex = null, _modalStatus = null;
 
 document.getElementById('dashBody').addEventListener('click', (e) => {
+  const nameEl = e.target.closest('.stu-ins-link');
+  if (nameEl) {
+    const s = _dashStudents.find(s => s.uid === nameEl.dataset.uid);
+    if (s) showStudentInsights(s);
+    return;
+  }
   const dot = e.target.closest('.dd-clickable');
   if (!dot || !dot.dataset.code) return;
   showCodeModal(

@@ -2255,6 +2255,141 @@ body {
   opacity: .5;
 }
 
+/* ── Class Insights panel ── */
+.class-insights {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: .6rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.class-insights.hidden { display: none; }
+.ins-head {
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--navy);
+  margin-bottom: .75rem;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+.ins-count {
+  font-weight: 400;
+  font-size: .78rem;
+  color: #888;
+}
+.ins-rows { display: flex; flex-direction: column; gap: .45rem; }
+.ins-row {
+  display: grid;
+  grid-template-columns: 10rem 1fr 2.5rem 6rem;
+  align-items: center;
+  gap: .6rem;
+}
+.ins-concept-name { font-size: .82rem; font-weight: 600; color: var(--navy); }
+.ins-bar-track {
+  background: #eee;
+  border-radius: 99px;
+  height: 8px;
+  overflow: hidden;
+}
+.ins-bar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+.ins-bar.ins-strong    { background: #16a34a; }
+.ins-bar.ins-developing{ background: var(--orange); }
+.ins-bar.ins-weak      { background: var(--burg); }
+.ins-pct { font-size: .78rem; font-weight: 700; color: #555; text-align: right; }
+.ins-badge {
+  font-size: .7rem;
+  font-weight: 700;
+  padding: .15rem .5rem;
+  border-radius: 99px;
+  text-align: center;
+}
+.ins-badge.ins-strong     { background: rgba(22,163,74,.12); color: #166534; }
+.ins-badge.ins-developing { background: rgba(232,114,5,.12);  color: #92400e; }
+.ins-badge.ins-weak       { background: rgba(91,0,11,.1);     color: var(--burg); }
+
+/* ── Student Insights modal ── */
+.stu-ins-link {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+.stu-ins-link:hover { color: var(--burg); }
+.stu-ins-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.stu-ins-overlay.hidden { display: none; }
+.stu-ins-box {
+  background: #fff;
+  border-radius: .75rem;
+  width: min(580px, 92vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,.25);
+}
+.stu-ins-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: var(--navy);
+  color: #fff;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+.stu-ins-title { font-weight: 700; font-size: 1rem; }
+.stu-ins-sub { font-size: .78rem; opacity: .65; margin-top: .2rem; }
+.stu-ins-close {
+  background: none; border: none; color: #fff;
+  font-size: 1.1rem; cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0;
+}
+.stu-ins-body { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: .9rem; }
+.stu-ins-section-title {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: .4rem;
+}
+.ins-strong-title    { color: #166534; }
+.ins-developing-title{ color: #92400e; }
+.ins-weak-title      { color: var(--burg); }
+.stu-ins-concepts { display: flex; flex-wrap: wrap; gap: .4rem; }
+.stu-ins-concept {
+  font-size: .8rem;
+  font-weight: 600;
+  padding: .25rem .65rem;
+  border-radius: .35rem;
+  display: flex;
+  gap: .35rem;
+  align-items: center;
+}
+.stu-ins-concept em { font-style: normal; font-weight: 400; opacity: .7; }
+.stu-ins-concept.ins-strong     { background: rgba(22,163,74,.12); color: #166534; }
+.stu-ins-concept.ins-developing { background: rgba(232,114,5,.12);  color: #92400e; }
+.stu-ins-concept.ins-weak       { background: rgba(91,0,11,.1);     color: var(--burg); }
+.stu-ins-tips {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  font-size: .85rem;
+  color: var(--navy);
+}
+
 #classCodeWrap {
   margin-top: .6rem;
 }
