@@ -1080,15 +1080,21 @@ const tasks=[
 ];
 
 
-// Maps cognitive concepts to 0-based task indices
+// Maps specific skills to 0-based task indices
 const CONCEPT_MAP = [
-  { name: 'Procedures',             tasks: [0,1,2,3,4,5,6,9,13,14,15,18,19,21] },
-  { name: 'Functions',              tasks: [5,7,8,9,12,13,14,15,17,18,20,21]   },
-  { name: 'Parameters & Arguments', tasks: [0,1,2,3,4,6,7,8,10,15,16,17,18,19,21] },
-  { name: 'Return Values',          tasks: [7,8,12,13,14,17]                   },
-  { name: 'Local / Global Scope',   tasks: [11]                                },
-  { name: 'By Reference (BYREF)',   tasks: [16,19]                             },
-  { name: 'Modular Design',         tasks: [9,13,14,18,20,21]                  },
+  { name: 'Procedure anatomy',              hint: 'identifying name, parameter, argument and data type',            tasks: [0,1,2]        },
+  { name: 'Writing procedure calls',        hint: 'correct argument order and matching argument types',             tasks: [4,10]         },
+  { name: 'Defining procedures',            hint: 'PROCEDURE … ENDPROCEDURE with correctly typed parameters',       tasks: [3,5,6]        },
+  { name: 'Procedure vs function',          hint: 'when a module should return a value vs just perform an action',  tasks: [5,7]          },
+  { name: 'Functions with return values',   hint: 'FUNCTION … RETURN … ENDFUNCTION and assigning the result',       tasks: [7,8,12,13]    },
+  { name: 'Multiple parameters',            hint: 'defining and calling modules that take more than one argument',  tasks: [8,9,10]       },
+  { name: 'Local and global scope',         hint: 'local parameters are copies — changes do not affect the caller', tasks: [11]           },
+  { name: 'Modules calling other modules',  hint: 'invoking a function or procedure from within another module',    tasks: [9,13,14]      },
+  { name: 'Multi-module program design',    hint: 'organising a program into 3+ cooperating procedures and functions', tasks: [14,15,18,20,21] },
+  { name: 'Passing by reference (BYREF)',   hint: 'BYREF lets a procedure modify the caller\'s original variable',  tasks: [16,19]        },
+  { name: 'String operations in modules',   hint: 'LENGTH, SUBSTRING and character-by-character iteration',         tasks: [17]           },
+  { name: 'Array parameters',               hint: 'passing and processing arrays as parameters in modules',         tasks: [18]           },
+  { name: 'Input validation loops',         hint: 'WHILE loops combined with BOOLEAN validation functions',         tasks: [15,20]        },
 ];
 
 let _dashStudents = [];
@@ -1468,7 +1474,7 @@ function showStudentInsights(s) {
     .filter(c => c.pending.length)
     .map(c => {
       const taskNums = c.pending.slice(0, 3).map(i => `Task ${i+1}`).join(', ');
-      return `<li>Work on <strong>${taskNums}</strong> to strengthen <strong>${c.name}</strong>.</li>`;
+      return `<li><strong>${c.name}</strong> — ${c.hint}.<br><span class="stu-ins-tip-tasks">Suggested: ${taskNums}</span></li>`;
     }).join('');
 
   const tipsHtml = tips ? `

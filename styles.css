@@ -2385,9 +2385,14 @@ body {
   padding-left: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: .35rem;
+  gap: .55rem;
   font-size: .85rem;
   color: var(--navy);
+}
+.stu-ins-tip-tasks {
+  font-size: .75rem;
+  color: #888;
+  font-style: italic;
 }
 
 #classCodeWrap {
