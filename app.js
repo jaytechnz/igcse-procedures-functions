@@ -1123,6 +1123,7 @@ async function refreshDashboard(){
       const prog = progDoc.exists ? progDoc.data() : { tasks: {}, quiz: {} };
       students.push({ uid: userDoc.id, email: userData.email, tasks: prog.tasks || {}, quiz: prog.quiz || {} });
     }
+    students.sort((a, b) => a.email.localeCompare(b.email));
 
     const totalTasks = tasks.length;
     const totalQuiz = quiz.length;
@@ -1153,7 +1154,11 @@ async function refreshDashboard(){
       for(let i=0;i<totalTasks;i++){
         const st = s.tasks[i]?.status;
         const cls = st==='done' ? 'dd-done' : st==='started' ? 'dd-prog' : 'dd-none';
-        dots += `<span class="detail-dot ${cls}" title="Task ${i+1}">${i+1}</span>`;
+        const code = s.tasks[i]?.code || '';
+        const taskName = encodeURIComponent(tasks[i]?.t || `Task ${i+1}`);
+        const email = encodeURIComponent(s.email);
+        const clickable = code ? `data-code="${encodeURIComponent(code)}" data-task="${i}" data-taskname="${taskName}" data-email="${email}"` : '';
+        dots += `<span class="detail-dot ${cls}${code?' dd-clickable':''}" title="Task ${i+1}${code?' — click to view code':''}" ${clickable}>${i+1}</span>`;
       }
       dots += '</div>';
       $body.innerHTML += `<tr>
@@ -1187,6 +1192,43 @@ document.getElementById('selectAll').addEventListener('change', (e) => {
 document.getElementById('dashBody').addEventListener('change', (e) => {
   if (e.target.classList.contains('student-check')) updateDeleteBtn();
 });
+
+document.getElementById('dashBody').addEventListener('click', (e) => {
+  const dot = e.target.closest('.dd-clickable');
+  if (!dot || !dot.dataset.code) return;
+  showCodeModal(
+    decodeURIComponent(dot.dataset.email),
+    decodeURIComponent(dot.dataset.taskname),
+    decodeURIComponent(dot.dataset.code)
+  );
+});
+
+function showCodeModal(email, taskName, code) {
+  let modal = document.getElementById('codeViewModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'codeViewModal';
+    modal.className = 'code-modal-overlay hidden';
+    modal.innerHTML = `
+      <div class="code-modal">
+        <div class="code-modal-header">
+          <div>
+            <div class="code-modal-title" id="codeModalTitle"></div>
+            <div class="code-modal-sub" id="codeModalSub"></div>
+          </div>
+          <button class="code-modal-close" id="codeModalClose">✕</button>
+        </div>
+        <pre class="code-modal-body" id="codeModalBody"></pre>
+      </div>`;
+    document.body.appendChild(modal);
+    document.getElementById('codeModalClose').addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
+  }
+  document.getElementById('codeModalTitle').textContent = taskName;
+  document.getElementById('codeModalSub').textContent = email;
+  document.getElementById('codeModalBody').textContent = code;
+  modal.classList.remove('hidden');
+}
 
 document.getElementById('deleteSelected').addEventListener('click', async () => {
   const checked = [...document.querySelectorAll('.student-check:checked')];
